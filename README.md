@@ -82,9 +82,24 @@ Every profile shares one mind by default, which is the point. Give a profile its
 - **The MCP server is optional** and listens only on localhost. It is reachable from outside only if you expose it yourself, for example with a tunnel.
 - Text is capped at 500 characters per note, name, step or date label.
 
+## Updating
+
+```bash
+hermes plugins update mindhall
+hermes gateway restart
+```
+
+If you installed Mindhall separately into a profile (for example from the desktop app's Install from Git), that profile keeps its own copy. Update each one too:
+
+```bash
+HERMES_HOME=~/.hermes/profiles/<name> hermes plugins update mindhall
+```
+
+`/mindhall` ends with the profile and name in use, so you can check any agent at a glance.
+
 ## Known issues
 
-- **Per-profile signatures depend on your Hermes setup.** Mindhall reads each profile's name from the per-turn profile scope Hermes provides. Where that scope isn't available, every profile signs with the default profile's name. `/mindhall` shows which profile and name are in use.
+- **Signatures follow the profile Hermes assigns to each session.** Agents on their own profile, such as a profile's Telegram bot, sign with that profile's name. In some setups, desktop-app sessions run under the default profile whichever profile is selected in the app, so they sign with the default profile's name.
 - The MCP server protects your mind with a secret address, not a login. Sign-in (OAuth) is planned.
 
 ## Develop
