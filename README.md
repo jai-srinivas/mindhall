@@ -50,7 +50,7 @@ Start a new session and tell your agent about a project or a date. Then type `/m
 3. Give it an HTTPS address: a free quick tunnel to try it, or your own domain to keep it.
 4. Add `https://<your address>/<your secret>/mcp` as a custom connector in ChatGPT or Claude, with no authentication.
 
-**[Step-by-step guide: docs/connect-ai-apps.md](docs/connect-ai-apps.md)**, with every command, how to keep the address permanent, changing your secret, and troubleshooting.
+**[Step-by-step guide: Connect AI apps](https://github.com/jai-srinivas/mindhall/wiki/Connect-AI-apps)**, with every command, how to keep the address permanent, changing your secret, and troubleshooting.
 
 Keep your address private: the secret in it is what protects your mind. Requests without it get a 404. Each app signs its own changes ("ChatGPT", "Claude") automatically.
 
