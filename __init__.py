@@ -3,12 +3,16 @@
 This is the Hermes plugin adapter. All storage and logic live in
 engine.py, so the MCP server and a future memory provider reuse it.
 """
+import contextvars
 import json
 import logging
 
 from . import engine, settings
 
 logger = logging.getLogger(__name__)
+
+# The Hermes session the current call belongs to (set around every tool, hook and command).
+_SESSION = contextvars.ContextVar("mindhall_session", default=None)
 
 RULES = (
     "Mindhall is the user's shared mind, used by all of their AIs. "
@@ -33,9 +37,13 @@ def register(ctx):
     # all of them. So the profile is looked up when each request runs: a Money
     # turn reads Money's .env and mind, a demo turn the demo's. Cached per profile.
     cache = {}
+    sessions = settings.SessionProfiles(settings.DEFAULT_DB.parent / "sessions.json")
 
     def current():
-        home = settings.profile_home()  # the profile this request runs under
+        # 1. The profile Hermes reported when this session started (most reliable).
+        # 2. Otherwise the profile Hermes says is active, then the plugin's own home.
+        profile = sessions.get(_SESSION.get())
+        home = settings.home_for_profile(profile) if profile else settings.profile_home()
         if home is None:
             home = getattr(getattr(ctx, "_manager", None), "home_path", None)
         key = str(home)
@@ -65,7 +73,8 @@ def register(ctx):
             "parameters": {"type": "object", "properties": properties, "required": required},
         }
 
-        def handler(params, **kwargs):
+        def handler(params, session_id=None, **kwargs):
+            token = _SESSION.set(session_id)
             try:
                 return _ok(fn(params or {}))
             except engine.MindhallError as e:
@@ -73,6 +82,8 @@ def register(ctx):
             except Exception:
                 logger.exception("mindhall tool %s failed", name)
                 return _err("Mindhall could not complete that. Nothing was changed.")
+            finally:
+                _SESSION.reset(token)
 
         ctx.register_tool(name=name, toolset="mindhall", schema=schema, handler=handler)
 
@@ -160,8 +171,9 @@ def register(ctx):
 
     # ---------- Per-turn context ----------
 
-    def inject(**kwargs):
+    def inject(session_id=None, **kwargs):
         # Runs every turn, so it must be fast and must never break the agent.
+        token = _SESSION.set(session_id)
         try:
             if mind.is_empty():
                 return None
@@ -169,20 +181,36 @@ def register(ctx):
         except Exception:
             logger.exception("mindhall context injection failed")
             return None
+        finally:
+            _SESSION.reset(token)
 
     ctx.register_hook("pre_llm_call", inject)
+
+    def carry_over(session_id=None, old_session_id=None, **kwargs):
+        # Compaction can move a long session to a new id; keep its profile.
+        if old_session_id:
+            sessions.carry_over(session_id, old_session_id)
+
+    ctx.register_hook("post_compaction", carry_over)
 
     # ---------- Standing rule (older Hermes versions may not have this) ----------
 
     if hasattr(ctx, "register_system_prompt_section"):
         try:
-            ctx.register_system_prompt_section("mindhall.rules", RULES, position="after_memory", max_chars=1200)
+            def rules(info):
+                # Hermes calls this once per new session with the true profile name
+                # (taken from the agent's own home). Remember it for later tool calls.
+                sessions.set(info.get("session_id"), str(info.get("profile_name") or "default"))
+                return RULES
+
+            ctx.register_system_prompt_section("mindhall.rules", rules, position="after_memory", max_chars=1200)
         except Exception:
             logger.exception("mindhall could not register its rules section")
 
     # ---------- /mindhall ----------
 
-    def show(args="", **kwargs):
+    def show(args="", session_id=None, **kwargs):
+        token = _SESSION.set(session_id)
         try:
             summary = engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
             cfg = current()[0]
@@ -190,5 +218,7 @@ def register(ctx):
         except Exception:
             logger.exception("mindhall /mindhall failed")
             return "Mindhall could not be read right now."
+        finally:
+            _SESSION.reset(token)
 
     ctx.register_command("mindhall", show, "Show what's in your shared mind")

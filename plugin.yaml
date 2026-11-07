@@ -9,3 +9,4 @@ provides_tools:
   - mindhall_remove
 provides_hooks:
   - pre_llm_call
+  - post_compaction

@@ -74,3 +74,76 @@ def resolve(home: Path | None = None) -> dict:
     db = Path(env.get("MINDHALL_DB") or DEFAULT_DB).expanduser()
     agent = (env.get("MINDHALL_AGENT_NAME") or "").strip() or default_agent_name(profile)
     return {"profile": profile or "none", "db": db, "agent": agent}
+
+
+def hermes_root() -> Path:
+    """The folder holding the default profile and the profiles/ folder (~/.hermes)."""
+    try:
+        from hermes_constants import get_default_hermes_root  # provided by Hermes
+
+        return Path(get_default_hermes_root()).expanduser()
+    except Exception:
+        return Path.home() / ".hermes"
+
+
+def home_for_profile(name: str) -> Path:
+    """~/.hermes for "default", ~/.hermes/profiles/<name> for any other profile."""
+    root = hermes_root()
+    if not name or name == "default" or "/" in name or name.startswith("."):
+        return root
+    return root / "profiles" / name
+
+
+class SessionProfiles:
+    """Remembers which profile each Hermes session belongs to.
+
+    Hermes reports the true profile name when a session starts, but tool
+    calls only carry the session id. Pairs are saved to a small JSON file so
+    they survive gateway restarts; only the most recent ones are kept.
+    """
+
+    def __init__(self, path: Path, keep: int = 2000):
+        import json
+        import threading
+
+        self._json = json
+        self._lock = threading.Lock()
+        self.path = Path(path)
+        self.keep = keep
+        try:
+            self._map = json.loads(self.path.read_text(encoding="utf-8"))
+            if not isinstance(self._map, dict):
+                self._map = {}
+        except (OSError, ValueError):
+            self._map = {}
+
+    def get(self, session_id) -> str | None:
+        return self._map.get(str(session_id)) if session_id else None
+
+    def set(self, session_id, profile: str) -> None:
+        if not session_id or not profile:
+            return
+        key = str(session_id)
+        with self._lock:
+            if self._map.get(key) == profile:
+                return
+            self._map.pop(key, None)
+            self._map[key] = profile  # newest last, so trimming drops the oldest
+            while len(self._map) > self.keep:
+                self._map.pop(next(iter(self._map)))
+            self._save()
+
+    def carry_over(self, new_id, old_id) -> None:
+        """A compacted session gets a new id; keep its profile."""
+        profile = self.get(old_id)
+        if profile:
+            self.set(new_id, profile)
+
+    def _save(self) -> None:
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = self.path.with_suffix(".tmp")
+            tmp.write_text(self._json.dumps(self._map), encoding="utf-8")
+            tmp.replace(self.path)
+        except OSError:
+            pass  # remembering is best-effort; the default profile is the fallback
