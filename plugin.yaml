@@ -1,0 +1,11 @@
+name: mindhall
+version: "0.1.0"
+description: One shared mind for every AI you use. Work, dates and a signed change log that Hermes, Claude and your other AIs all read and write.
+provides_tools:
+  - mindhall_read
+  - mindhall_update_work
+  - mindhall_set_date
+  - mindhall_add_note
+  - mindhall_remove
+provides_hooks:
+  - pre_llm_call
