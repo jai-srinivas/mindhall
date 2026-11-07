@@ -1,51 +1,91 @@
 # Mindhall
 
-One shared mind for every AI you use.
+**One shared mind for every AI you use.**
 
-Your AIs each remember a different version of you. Mindhall gives them one source of truth: your work, your dates and the rules you want followed, plus a Change Log that records which AI changed what, and when.
+Every AI you use remembers a different version of you. Tell Claude your launch moved and ChatGPT still has the old date. Your Hermes agent never heard about it at all.
 
-This repo is the Hermes plugin. An MCP server for Claude, ChatGPT and Cursor is coming next, on the same database.
+Mindhall is one source of truth they all share: your work, your dates and the rules you want followed. Any AI can read it and write to it, and every change is signed, so you can see exactly which AI changed what.
 
-## Install
-
-```bash
-hermes plugins install <your-github-user>/mindhall --enable
+```
+Latest changes
+  10:26  Hermes Time: Removed note: test
+  10:15  ChatGPT: Moved Launch from 2026-11-20 to 2026-11-22
+  09:28  Hermes: Added Launch on 2026-11-20
 ```
 
-Restart Hermes. Then tell your agent about a project or a date, and type `/mindhall` to see what it saved.
+## How it works
 
-## What it does
+Your mind has four rooms:
 
-- **Every turn**, Hermes sees a short Mindhall block: about you, active work, the next two weeks of dates and the latest changes. If Mindhall and the agent's own memory disagree, Mindhall wins.
+| Room | Holds |
+| --- | --- |
+| About you | Who you are, how you work, the rules every AI follows |
+| Work | Your projects, clients or courses, and where each one stands |
+| Dates | Every deadline and launch |
+| Change Log | Every change, which AI made it, and when |
+
+- **Every Hermes turn starts with a short Mindhall block**: about you, active work, the next two weeks of dates and the latest changes. If Mindhall and the agent's own memory disagree, Mindhall wins.
 - **Agents write back** with five tools: `mindhall_read`, `mindhall_update_work`, `mindhall_set_date`, `mindhall_add_note` and `mindhall_remove`.
-- **Every change is signed** in the Change Log with the agent's name.
-- **Moving a date updates it.** "Launch moved to Nov 20" changes the existing Launch date instead of adding a second one.
-- **It never breaks your agent.** If the database can't be read, the turn goes ahead without it.
+- **Moving a date updates it.** "Launch moved to Nov 22" changes the existing Launch date instead of adding a second, conflicting one.
+- **Other AI apps share the same mind** through the included MCP server: ChatGPT, Claude, Cursor and anything else that speaks MCP.
+- **It never breaks your agent.** If the mind can't be read, the turn goes ahead without it.
 
 Mindhall is a regular plugin, not a memory provider, so it works alongside Honcho, Mem0 or whatever memory you already use.
 
-## Connect Claude, ChatGPT and other AI apps
-
-`mcp_server.py` lets any app that supports MCP use the same mind as your Hermes agents. Every change is signed with the app's name, so the Change Log shows "Claude: Moved Launch to Nov 20".
+## Install in Hermes
 
 ```bash
-pip install "mcp>=2"
-export MINDHALL_MCP_SECRET=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
-python3 mcp_server.py
+hermes plugins install jai-srinivas/mindhall --enable
+hermes gateway restart
 ```
 
-It listens on `127.0.0.1:8765`. Put it behind HTTPS (for example a Cloudflare tunnel), then add `https://<your-address>/<secret>/mcp` as a custom connector in Claude or ChatGPT. Keep that address private: the secret in it is what protects your mind.
+Start a new session and tell your agent about a project or a date. Then type `/mindhall` to see what it saved and who signed it.
+
+## Connect ChatGPT, Claude and other AI apps
+
+`mcp_server.py` serves the same mind over MCP. Run it on the machine where Hermes runs:
+
+```bash
+git clone https://github.com/jai-srinivas/mindhall.git mindhall-server
+cd mindhall-server
+python3 -m venv .venv && .venv/bin/pip install "mcp>=2,<3"
+python3 -c 'import secrets; print("MINDHALL_MCP_SECRET=" + secrets.token_urlsafe(32))' > ~/.mindhall-mcp.env
+set -a; . ~/.mindhall-mcp.env; set +a
+.venv/bin/python mcp_server.py
+```
+
+It listens on `127.0.0.1:8765`. Put it behind HTTPS (for example `cloudflared tunnel --url http://127.0.0.1:8765`), then add this address as a custom MCP connector in ChatGPT or Claude, with no authentication:
+
+```
+https://<your-address>/<your-secret>/mcp
+```
+
+Keep that address private: the secret in it is what protects your mind. Requests without it get a 404. Each app signs its own changes ("ChatGPT", "Claude") automatically.
+
+With a permanent address, also set `MINDHALL_MCP_ALLOWED_HOSTS` (for example `mcp.example.com`) so every request's Host and Origin headers are checked.
 
 ## Settings
 
-Each Hermes profile reads its own `.env` file (`~/.hermes/.env` for the default profile, `~/.hermes/profiles/<name>/.env` for others):
+Set these in a profile's `.env` (`~/.hermes/.env` for the default profile, `~/.hermes/profiles/<name>/.env` for others). Mindhall reads them through Hermes's profile-aware settings, never by opening the file itself.
 
 | Variable | What it does | Default |
 | --- | --- | --- |
 | `MINDHALL_AGENT_NAME` | The name this profile signs changes with | `Hermes <Profile>`, or `Hermes` for the default profile |
-| `MINDHALL_DB` | Where this profile's mind is stored | `~/.mindhall/mindhall.db`, shared by all profiles |
+| `MINDHALL_DB` | Where this profile's mind is stored | `~/.mindhall/mindhall.db`, shared by every profile |
 
-By default every profile shares one mind, which is the point. Give a profile its own `MINDHALL_DB` to keep it separate, for example a demo or a personal agent. Run `/mindhall` in any profile to see the name it signs with.
+Every profile shares one mind by default, which is the point. Give a profile its own `MINDHALL_DB` to keep it separate, for example a demo or a personal agent.
+
+## What Mindhall touches
+
+- **One local SQLite file** at `~/.mindhall/mindhall.db` (or your `MINDHALL_DB`), plus `~/.mindhall/sessions.json`, which remembers which profile each session belongs to.
+- **No network calls** from the Hermes plugin, no telemetry, no credentials.
+- **The MCP server is optional** and listens only on localhost. It is reachable from outside only if you expose it yourself, for example with a tunnel.
+- Text is capped at 500 characters per note, name, step or date label.
+
+## Known issues
+
+- **Per-profile signatures depend on your Hermes setup.** Mindhall reads each profile's name from the per-turn profile scope Hermes provides. Where that scope isn't available, every profile signs with the default profile's name. `/mindhall` shows which profile and name are in use.
+- The MCP server protects your mind with a secret address, not a login. Sign-in (OAuth) is planned.
 
 ## Develop
 
@@ -54,11 +94,12 @@ pip install pytest
 pytest
 ```
 
-The tests cover the engine and need no Hermes install.
+The tests cover the engine and settings, and need no Hermes install.
 
 ## Coming next
 
-- MCP server, so Claude, ChatGPT and Cursor share the same mind
+- Sign-in for the MCP server, so the address needs no secret
+- A hosted version with nothing to set up
 - Memory provider mode, for people who want Mindhall as their main memory
 - One-click undo from the Change Log
 
