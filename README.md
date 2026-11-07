@@ -43,26 +43,16 @@ Start a new session and tell your agent about a project or a date. Then type `/m
 
 ## Connect ChatGPT, Claude and other AI apps
 
-`mcp_server.py` serves the same mind over MCP. Run it on the machine where Hermes runs:
+`mcp_server.py` serves the same mind over MCP, so ChatGPT, Claude, Claude Code and other MCP apps share it with your Hermes agents. In short:
 
-```bash
-git clone https://github.com/jai-srinivas/mindhall.git mindhall-server
-cd mindhall-server
-python3 -m venv .venv && .venv/bin/pip install "mcp>=2,<3"
-python3 -c 'import secrets; print("MINDHALL_MCP_SECRET=" + secrets.token_urlsafe(32))' > ~/.mindhall-mcp.env
-set -a; . ~/.mindhall-mcp.env; set +a
-.venv/bin/python mcp_server.py
-```
+1. Install it next to Hermes and create a secret.
+2. Run it as an always-on service on `127.0.0.1:8765`.
+3. Give it an HTTPS address: a free quick tunnel to try it, or your own domain to keep it.
+4. Add `https://<your address>/<your secret>/mcp` as a custom connector in ChatGPT or Claude, with no authentication.
 
-It listens on `127.0.0.1:8765`. Put it behind HTTPS (for example `cloudflared tunnel --url http://127.0.0.1:8765`), then add this address as a custom MCP connector in ChatGPT or Claude, with no authentication:
+**[Step-by-step guide: docs/connect-ai-apps.md](docs/connect-ai-apps.md)**, with every command, how to keep the address permanent, changing your secret, and troubleshooting.
 
-```
-https://<your-address>/<your-secret>/mcp
-```
-
-Keep that address private: the secret in it is what protects your mind. Requests without it get a 404. Each app signs its own changes ("ChatGPT", "Claude") automatically.
-
-With a permanent address, also set `MINDHALL_MCP_ALLOWED_HOSTS` (for example `mcp.example.com`) so every request's Host and Origin headers are checked.
+Keep your address private: the secret in it is what protects your mind. Requests without it get a 404. Each app signs its own changes ("ChatGPT", "Claude") automatically.
 
 ## Read and edit your mind
 
@@ -96,6 +86,7 @@ Every profile shares one mind by default, which is the point. Give a profile its
 - **No network calls** from the Hermes plugin, no telemetry, no credentials.
 - **The MCP server is optional** and listens only on localhost. It also serves the tables page described above. It is reachable from outside only if you expose it yourself, for example with a tunnel.
 - Text is capped at 500 characters per note, name, step or date label.
+- **What AIs see:** your mind is stored on your machine, but when an AI reads it, what it reads becomes part of that conversation and is processed by that AI's provider, like anything else you tell it.
 
 ## Updating
 

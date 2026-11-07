@@ -80,6 +80,7 @@
   .what { grid-column: 1; color: var(--text); font-size: 14px; overflow-wrap: anywhere; }
   .undo { grid-column: 2; justify-self: end; align-self: start; padding: 3px 10px; border: 1px solid var(--line-strong); border-radius: 7px; background: transparent; color: var(--muted); font-size: 12.5px; cursor: pointer; }
   .undo:hover { color: var(--text); border-color: var(--muted); }
+  .noundo { grid-column: 2; justify-self: end; align-self: start; color: var(--faint); font-size: 12px; padding-top: 3px; }
 
   .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none;
            display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 16px; border: 1px solid var(--line-strong); border-radius: 10px;
@@ -141,8 +142,15 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { t.className = "toast"; }, undoId ? 6000 : 3500);
   }
-  function hue(name) { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
-  function colorFor(name) { return name === "You" ? "var(--accent)" : `hsl(${hue(name)} 62% 66%)`; }
+  // Clearly different colours per agent. "You" is always the accent gold.
+  const PALETTE = ["#7cc4ff", "#6fd6a0", "#c3a2ff", "#ff9f7f", "#ff8fbf", "#76dcdc", "#b9df7a", "#9fb0ff"];
+  let colors = {};
+  function assignColors(changes) {
+    colors = {};
+    [...new Set(changes.map((c) => c.by))].filter((n) => n !== "You").sort()
+      .forEach((n, i) => { colors[n] = PALETTE[i % PALETTE.length]; });
+  }
+  function colorFor(name) { return name === "You" ? "var(--accent)" : (colors[name] || PALETTE[0]); }
   function ago(iso) {
     const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
     if (s < 45) return "just now";
@@ -231,7 +239,9 @@
       cell(d.what, (v) => save("PATCH", "date/" + d.id, { what: v }, "Saved."), { label: "What happens on " + d.day, required: true }),
       cell(d.work, (v) => save("PATCH", "date/" + d.id, { work: v }, "Saved."), { label: "Work for " + d.what, placeholder: "No work", list: "work-names" }),
       del("Delete " + d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + "."))));
-    const day = cell("", () => true, { type: "date", label: "New date" });
+    const day = cell("", () => true, { type: "text", label: "New date", placeholder: "Date" });
+    day.addEventListener("focus", () => { day.type = "date"; });
+    day.addEventListener("blur", () => { if (!day.value) day.type = "text"; });
     const what = cell("", () => true, { label: "New date, what happens", placeholder: "+ New date: launch, deadline, call" });
     const work = cell("", () => true, { label: "New date, work", placeholder: "Work", list: "work-names" });
     const add = async () => {
@@ -259,13 +269,15 @@
   }
 
   function renderLog(changes) {
+    assignColors(changes);
     const fresh = seen ? changes.filter((c) => !seen.has(c.id)).map((c) => c.id) : [];
     seen = new Set(changes.map((c) => c.id));
     const items = changes.map((c) => el("li", { class: fresh.includes(c.id) ? "new" : "" },
       el("span", { class: "who" }, el("i", { style: "background:" + colorFor(c.by), "aria-hidden": "true" }), c.by),
       el("time", { class: "when", datetime: c.at, title: new Date(c.at).toLocaleString() }, ago(c.at)),
       el("span", { class: "what" }, c.summary),
-      c.undoable ? el("button", { class: "undo", onclick: () => undo(c.id), "aria-label": "Undo: " + c.summary }, "Undo") : null));
+      c.undoable ? el("button", { class: "undo", onclick: () => undo(c.id), "aria-label": "Undo: " + c.summary }, "Undo")
+                 : el("span", { class: "noundo", title: "Made before Undo existed" }, "Can't undo")));
     document.getElementById("log").replaceChildren(...(items.length ? items : [el("li", {}, el("span", { class: "what" }, "No changes yet."))]));
   }
 
