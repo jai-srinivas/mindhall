@@ -29,14 +29,34 @@ def _err(message):
 
 
 def register(ctx):
-    cfg = settings.resolve()
-    mind = engine.Mind(cfg["db"])
-    logger.info("mindhall: profile %s signs as %r, mind at %s", cfg["profile"], cfg["agent"], cfg["db"])
+    # One gateway serves every profile, and this plugin may be set up once for
+    # all of them. So the profile is looked up when each request runs: a Money
+    # turn reads Money's .env and mind, a demo turn the demo's. Cached per profile.
+    cache = {}
+
+    def current():
+        home = settings.profile_home()  # the profile this request runs under
+        if home is None:
+            home = getattr(getattr(ctx, "_manager", None), "home_path", None)
+        key = str(home)
+        if key not in cache:
+            cfg = settings.resolve(home) if home is not None else settings.resolve()
+            cache[key] = (cfg, engine.Mind(cfg["db"]))
+            logger.info("mindhall: profile %s signs as %r, mind at %s", cfg["profile"], cfg["agent"], cfg["db"])
+        return cache[key]
+
+    class _CurrentMind:
+        """Stands in for the current profile's mind on every call."""
+
+        def __getattr__(self, attr):
+            return getattr(current()[1], attr)
+
+    mind = _CurrentMind()
 
     def agent_name():
         # Per profile: MINDHALL_AGENT_NAME in the profile's own .env file,
         # otherwise "Hermes <Profile>" (plain "Hermes" for the default profile).
-        return cfg["agent"]
+        return current()[0]["agent"]
 
     def tool(name, description, properties, required, fn):
         schema = {
@@ -165,7 +185,8 @@ def register(ctx):
     def show(args="", **kwargs):
         try:
             summary = engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
-            return f"{summary}\n\nThis agent signs as {cfg['agent']}."
+            cfg = current()[0]
+            return f"{summary}\n\nProfile: {cfg['profile']}. This agent signs as {cfg['agent']}."
         except Exception:
             logger.exception("mindhall /mindhall failed")
             return "Mindhall could not be read right now."
