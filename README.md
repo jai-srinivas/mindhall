@@ -9,7 +9,7 @@ This repo is the Hermes plugin. An MCP server for Claude, ChatGPT and Cursor is 
 ## Install
 
 ```bash
-hermes plugins install <your-github-user>/mindhall --enable
+hermes plugins install jai-srinivas/mindhall --enable
 ```
 
 Restart Hermes. Then tell your agent about a project or a date, and type `/mindhall` to see what it saved.
