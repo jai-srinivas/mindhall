@@ -38,12 +38,14 @@ It listens on `127.0.0.1:8765`. Put it behind HTTPS (for example a Cloudflare tu
 
 ## Settings
 
+Each Hermes profile reads its own `.env` file (`~/.hermes/.env` for the default profile, `~/.hermes/profiles/<name>/.env` for others):
+
 | Variable | What it does | Default |
 | --- | --- | --- |
-| `MINDHALL_DB` | Where the mind is stored | `~/.mindhall/mindhall.db` |
-| `MINDHALL_AGENT_NAME` | The name this agent signs changes with | `Hermes (<platform>)` |
+| `MINDHALL_AGENT_NAME` | The name this profile signs changes with | `Hermes <Profile>`, or `Hermes` for the default profile |
+| `MINDHALL_DB` | Where this profile's mind is stored | `~/.mindhall/mindhall.db`, shared by all profiles |
 
-Running several Hermes profiles? Give each its own `MINDHALL_AGENT_NAME` and point them all at the same `MINDHALL_DB`, so they share one mind.
+By default every profile shares one mind, which is the point. Give a profile its own `MINDHALL_DB` to keep it separate, for example a demo or a personal agent. Run `/mindhall` in any profile to see the name it signs with.
 
 ## Develop
 

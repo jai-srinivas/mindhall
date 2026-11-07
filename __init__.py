@@ -5,9 +5,8 @@ engine.py, so the MCP server and a future memory provider reuse it.
 """
 import json
 import logging
-import os
 
-from . import engine
+from . import engine, settings
 
 logger = logging.getLogger(__name__)
 
@@ -30,19 +29,14 @@ def _err(message):
 
 
 def register(ctx):
-    mind = engine.Mind()
+    cfg = settings.resolve()
+    mind = engine.Mind(cfg["db"])
+    logger.info("mindhall: profile %s signs as %r, mind at %s", cfg["profile"], cfg["agent"], cfg["db"])
 
     def agent_name():
-        # Set MINDHALL_AGENT_NAME per Hermes profile (e.g. "Hermes Time") so the
-        # Change Log shows exactly which agent made each change.
-        name = os.environ.get("MINDHALL_AGENT_NAME", "").strip()
-        if name:
-            return name
-        try:
-            surface = ctx.session_surface()
-        except Exception:
-            surface = ""
-        return f"Hermes ({surface})" if surface else "Hermes"
+        # Per profile: MINDHALL_AGENT_NAME in the profile's own .env file,
+        # otherwise "Hermes <Profile>" (plain "Hermes" for the default profile).
+        return cfg["agent"]
 
     def tool(name, description, properties, required, fn):
         schema = {
@@ -170,7 +164,8 @@ def register(ctx):
 
     def show(args="", **kwargs):
         try:
-            return engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
+            summary = engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
+            return f"{summary}\n\nThis agent signs as {cfg['agent']}."
         except Exception:
             logger.exception("mindhall /mindhall failed")
             return "Mindhall could not be read right now."
