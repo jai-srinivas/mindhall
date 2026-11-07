@@ -33,25 +33,24 @@ def _err(message):
 
 
 def register(ctx):
-    # One gateway serves every profile, and this plugin may be set up once for
-    # all of them. So the profile is looked up when each request runs: a Money
-    # turn reads Money's .env and mind, a demo turn the demo's. Cached per profile.
-    cache = {}
+    # One gateway can serve every profile, so the profile is worked out on each
+    # call, from (1) the per-turn scope Hermes stamps with the profile's home,
+    # (2) the profile Hermes reported when this session started, (3) whatever
+    # Hermes reports as active. Settings come through Hermes's public route.
+    minds = {}
     sessions = settings.SessionProfiles(settings.DEFAULT_DB.parent / "sessions.json")
 
     def current():
-        # 1. The profile Hermes reported when this session started (most reliable).
-        # 2. Otherwise the profile Hermes says is active, then the plugin's own home.
-        profile = sessions.get(_SESSION.get())
-        home = settings.home_for_profile(profile) if profile else settings.profile_home()
+        home = settings.scoped_home()
         if home is None:
-            home = getattr(getattr(ctx, "_manager", None), "home_path", None)
-        key = str(home)
-        if key not in cache:
-            cfg = settings.resolve(home) if home is not None else settings.resolve()
-            cache[key] = (cfg, engine.Mind(cfg["db"]))
+            profile = sessions.get(_SESSION.get())
+            home = settings.home_for_profile(profile) if profile else settings.ambient_home()
+        cfg = settings.resolve(home)
+        key = str(cfg["db"])
+        if key not in minds:
+            minds[key] = engine.Mind(cfg["db"])
             logger.info("mindhall: profile %s signs as %r, mind at %s", cfg["profile"], cfg["agent"], cfg["db"])
-        return cache[key]
+        return cfg, minds[key]
 
     class _CurrentMind:
         """Stands in for the current profile's mind on every call."""

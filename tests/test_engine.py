@@ -91,8 +91,26 @@ def test_two_connections_share_one_mind(tmp_path):
     assert mcp_server.all_dates(today=TODAY)[0]["what"] == "Launch"
 
 
+def test_mind_moved_away_while_running_is_recreated_empty(tmp_path):
+    folder = tmp_path / "mindhall"
+    mind = engine.Mind(folder / "mind.db")
+    mind.set_date("Launch", "2026-11-20", "Claude")
+    folder.rename(tmp_path / "mindhall-real")  # the recording-day swap
+    assert mind.is_empty()
+    mind.add_note("Demo note", "Claude")
+    assert len(mind.recent_changes()) == 1
+
+
 def test_removing_a_note_is_logged(mind):
     note = mind.add_note("Works from a terrace", "Claude")
     mind.remove_note(note["id"], "Claude")
     assert mind.snapshot(today=TODAY)["about"] == []
     assert mind.recent_changes()[0]["summary"].startswith("Removed note")
+
+
+def test_overlong_text_is_refused_and_nothing_is_saved(mind):
+    with pytest.raises(engine.MindhallError):
+        mind.add_note("x" * (engine.MAX_TEXT + 1), "Claude")
+    with pytest.raises(engine.MindhallError):
+        mind.set_work("Mindhall", "Claude", next_step="y" * (engine.MAX_TEXT + 1))
+    assert mind.is_empty() and mind.recent_changes() == []

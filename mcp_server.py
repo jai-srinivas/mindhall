@@ -22,6 +22,11 @@ from mcp.server.mcpserver import Context, MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from mcp.server.transport_security import TransportSecuritySettings
 
+try:
+    from mcp.types import ToolAnnotations
+except ImportError:  # mcp 2.x splits the types into their own package
+    from mcp_types import ToolAnnotations
+
 import engine
 
 INSTRUCTIONS = (
@@ -74,7 +79,7 @@ def _do(call):
         raise ToolError(str(e)) from None
 
 
-@mcp.tool()
+@mcp.tool(title="Read Mindhall", annotations=ToolAnnotations(title='Read Mindhall', readOnlyHint=True, openWorldHint=False))
 def mindhall_read(room: str = "all", include_past: bool = False, limit: int = 20) -> dict:
     """Read the user's shared mind (Mindhall): About you, Work, Dates and the Change Log.
 
@@ -94,7 +99,7 @@ def mindhall_read(room: str = "all", include_past: bool = False, limit: int = 20
     return mind.snapshot(days_ahead=30, changes=10)
 
 
-@mcp.tool()
+@mcp.tool(title="Update work", annotations=ToolAnnotations(title='Update work', readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def mindhall_update_work(name: str, ctx: Context, status: str | None = None, next_step: str | None = None) -> dict:
     """Add a project, client or course to the user's Work, or change its status or next step.
 
@@ -103,7 +108,7 @@ def mindhall_update_work(name: str, ctx: Context, status: str | None = None, nex
     return _do(lambda: mind.set_work(name, app_name(ctx), status, next_step))
 
 
-@mcp.tool()
+@mcp.tool(title="Add or move a date", annotations=ToolAnnotations(title='Add or move a date', readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def mindhall_set_date(day: str, ctx: Context, what: str = "", work: str = "", id: int | None = None) -> dict:
     """Add a date, or move an existing one. A date with the same name is moved, not duplicated.
 
@@ -113,14 +118,14 @@ def mindhall_set_date(day: str, ctx: Context, what: str = "", work: str = "", id
     return _do(lambda: mind.set_date(what, day, app_name(ctx), work, id))
 
 
-@mcp.tool()
+@mcp.tool(title="Add a note", annotations=ToolAnnotations(title='Add a note', readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=False))
 def mindhall_add_note(note: str, ctx: Context) -> dict:
     """Save a lasting fact or rule about the user to About you, e.g. how they like answers written.
     Only what the user said."""
     return _do(lambda: mind.add_note(note, app_name(ctx)))
 
 
-@mcp.tool()
+@mcp.tool(title="Remove a note or date", annotations=ToolAnnotations(title='Remove a note or date', readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=False))
 def mindhall_remove(room: str, id: int, ctx: Context) -> dict:
     """Remove a note (room "about") or a date (room "dates") by id. Only when the user asks."""
     room = (room or "").lower()
@@ -140,16 +145,23 @@ def main() -> None:
         )
     host = os.environ.get("MINDHALL_MCP_HOST", "127.0.0.1")
     port = int(os.environ.get("MINDHALL_MCP_PORT", "8765"))
+    # With a permanent address, set MINDHALL_MCP_ALLOWED_HOSTS (e.g. mcp.getmindhall.com)
+    # to have every request's Host and Origin headers checked. Quick tunnels change
+    # address on every start, so the check is off unless hosts are given; the secret
+    # in the path protects access either way.
+    hosts = [h.strip() for h in os.environ.get("MINDHALL_MCP_ALLOWED_HOSTS", "").split(",") if h.strip()]
+    security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=bool(hosts),
+        allowed_hosts=hosts,
+        allowed_origins=[f"https://{h}" for h in hosts],
+    )
     print(f"Mindhall MCP server on http://{host}:{port}/<secret>/mcp (database: {mind.path})", file=sys.stderr)
     mcp.run(
         transport="streamable-http",
         host=host,
         port=port,
         streamable_http_path=f"/{secret}/mcp",
-        # The server only listens on localhost and is reached through a tunnel,
-        # whose public hostname would fail the default Host-header check.
-        # Access is protected by the secret in the path instead.
-        transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+        transport_security=security,
     )
 
 

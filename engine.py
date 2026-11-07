@@ -18,6 +18,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 STATUSES = ("Active", "Parked", "Done")
+MAX_TEXT = 500  # characters per note, name, step or date label: a mind, not a document store
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS about (
@@ -72,6 +73,13 @@ def _parse_day(value) -> str:
         raise MindhallError("Dates must be written as YYYY-MM-DD, for example 2026-11-20.")
 
 
+def _text(value, what: str) -> str:
+    text = (value or "").strip()
+    if len(text) > MAX_TEXT:
+        raise MindhallError(f"The {what} is too long. Keep it under {MAX_TEXT} characters.")
+    return text
+
+
 def _dump(value):
     return json.dumps(value) if value is not None else None
 
@@ -114,7 +122,7 @@ class Mind:
     # ---------- About you ----------
 
     def add_note(self, note: str, by: str) -> dict:
-        note = (note or "").strip()
+        note = _text(note, "note")
         if not note:
             raise MindhallError("The note is empty.")
         with self._conn() as c:
@@ -136,7 +144,7 @@ class Mind:
 
     def set_work(self, name: str, by: str, status: str | None = None, next_step: str | None = None) -> dict:
         """Add a piece of work, or update its status or next step."""
-        name = (name or "").strip()
+        name = _text(name, "work name")
         if not name:
             raise MindhallError("The work name is empty.")
         if status is not None:
@@ -147,7 +155,7 @@ class Mind:
         with self._conn() as c:
             row = c.execute("SELECT * FROM work WHERE name = ?", (name,)).fetchone()
             if row is None:
-                new = {"name": name, "status": status or "Active", "next_step": (next_step or "").strip()}
+                new = {"name": name, "status": status or "Active", "next_step": _text(next_step, "next step")}
                 c.execute(
                     "INSERT INTO work (name, status, next_step, updated_at) VALUES (?, ?, ?, ?)",
                     (new["name"], new["status"], new["next_step"], _now()),
@@ -159,7 +167,7 @@ class Mind:
             if status is not None:
                 after["status"] = status
             if next_step is not None:
-                after["next_step"] = next_step.strip()
+                after["next_step"] = _text(next_step, "next step")
             if after == before:
                 return after
             c.execute(
@@ -184,8 +192,8 @@ class Mind:
         instead of creating a second, conflicting one.
         """
         day = _parse_day(day)
-        what = (what or "").strip()
-        work = (work or "").strip()
+        what = _text(what, "date label")
+        work = _text(work, "work name")
         with self._conn() as c:
             row = None
             if date_id is not None:

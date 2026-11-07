@@ -1,15 +1,14 @@
 """Per-profile settings for the Mindhall Hermes plugin.
 
-One Hermes gateway runs every profile in a single process, so environment
-variables are shared between profiles and one profile's .env can leak into
-another. Mindhall therefore reads its two settings straight from the
-profile's own .env file instead:
+Settings come from the profile's own .env, read through Hermes's public
+profile-aware route (agent.secret_scope), never by opening .env files:
 
     MINDHALL_AGENT_NAME   the name this profile signs changes with
     MINDHALL_DB           where this profile's mind is stored
 
 Defaults: profiles sign as "Hermes <Profile>" (the default profile as plain
 "Hermes"), and every profile shares one mind at ~/.mindhall/mindhall.db.
+Outside Hermes (tests, scripts) the process environment is used instead.
 """
 from __future__ import annotations
 
@@ -19,31 +18,33 @@ from pathlib import Path
 DEFAULT_DB = Path.home() / ".mindhall" / "mindhall.db"
 
 
-def read_dotenv(path: Path) -> dict:
-    """Read KEY=VALUE lines from a .env file. Missing or unreadable files give {}."""
-    values: dict = {}
+def get_setting(name: str) -> str | None:
+    """A setting from the current profile's scope (Hermes), else the process environment."""
     try:
-        lines = Path(path).read_text(encoding="utf-8").splitlines()
-    except OSError:
-        return values
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        if line.startswith("export "):
-            line = line[len("export "):]
-        key, value = line.split("=", 1)
-        value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
-            value = value[1:-1]
-        values[key.strip()] = value
-    return values
+        from agent.secret_scope import get_secret  # public Hermes plugin API
+    except Exception:
+        return os.environ.get(name) or None
+    try:
+        return get_secret(name, None) or None
+    except Exception:  # e.g. no profile scope active; fall back to defaults
+        return None
 
 
-def profile_home() -> Path | None:
-    """The Hermes home of the profile loading the plugin, or None outside Hermes."""
+def scoped_home() -> Path | None:
+    """The home of the profile whose turn is running, as stamped on Hermes's per-turn scope."""
     try:
-        from hermes_constants import get_hermes_home  # provided by Hermes
+        from agent.secret_scope import current_secret_scope_home  # public Hermes plugin API
+
+        home = current_secret_scope_home()
+        return Path(home).expanduser() if home else None
+    except Exception:
+        return None
+
+
+def ambient_home() -> Path | None:
+    """The profile Hermes reports as active, or None outside Hermes."""
+    try:
+        from hermes_constants import get_hermes_home  # public Hermes plugin API
 
         return Path(get_hermes_home()).expanduser()
     except Exception:
@@ -52,7 +53,7 @@ def profile_home() -> Path | None:
 
 
 def profile_name(home: Path | None) -> str:
-    """'money' for ~/.hermes/profiles/money, 'default' for ~/.hermes, '' outside Hermes."""
+    """'money' for <root>/profiles/money, 'default' for the root, '' when unknown."""
     if home is None:
         return ""
     return home.name if home.parent.name == "profiles" else "default"
@@ -64,16 +65,12 @@ def default_agent_name(profile: str) -> str:
     return "Hermes " + profile.replace("-", " ").replace("_", " ").title()
 
 
-def resolve(home: Path | None = None) -> dict:
-    """Work out this profile's name, mind and signature."""
-    home = profile_home() if home is None else home
+def resolve(home: Path | None) -> dict:
+    """This profile's name, mind and signature."""
     profile = profile_name(home)
-    env = read_dotenv(home / ".env") if home is not None else {}
-    if home is None:  # outside Hermes, fall back to the process environment
-        env = {k: v for k, v in os.environ.items() if k.startswith("MINDHALL_")}
-    db = Path(env.get("MINDHALL_DB") or DEFAULT_DB).expanduser()
-    agent = (env.get("MINDHALL_AGENT_NAME") or "").strip() or default_agent_name(profile)
-    return {"profile": profile or "none", "db": db, "agent": agent}
+    db = Path(get_setting("MINDHALL_DB") or DEFAULT_DB).expanduser()
+    agent = (get_setting("MINDHALL_AGENT_NAME") or "").strip() or default_agent_name(profile)
+    return {"profile": profile or "default", "db": db, "agent": agent}
 
 
 def hermes_root() -> Path:
