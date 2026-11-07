@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Mindhall</title>
+<style>
+  :root {
+    --bg: #0f1012; --surface: #16171a; --raised: #1d1f23; --line: #26282d; --line-strong: #34363c;
+    --text: #ecebe8; --muted: #9c9a94; --faint: #6f6d68;
+    --accent: #e9c46a; --danger: #f08a7a; --ok: #7fd1a8;
+    --radius: 10px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-variant-numeric: tabular-nums; }
+  button, input, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+           padding: 14px clamp(16px, 4vw, 40px); background: rgba(15,16,18,.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 17px; letter-spacing: -0.01em; }
+  .brand i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px rgba(233,196,106,.55); }
+  .brand small { color: var(--muted); font-weight: 400; font-size: 14px; }
+  .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .status b { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+  .status.off b { background: var(--danger); }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; padding: 28px clamp(16px, 4vw, 40px) 80px; max-width: 1360px; margin: 0 auto; }
+  @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+
+  section { margin-bottom: 34px; }
+  h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 10px; font-size: 18px; font-weight: 650; letter-spacing: -0.01em; }
+  h2 span { color: var(--faint); font-size: 13px; font-weight: 500; }
+
+  .table { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+  .row { display: grid; align-items: center; border-top: 1px solid var(--line); min-height: 44px; }
+  .row:first-child { border-top: 0; }
+  .row.head { min-height: 36px; background: var(--raised); color: var(--muted); font-size: 13px; }
+  .row.head > div { padding: 0 12px; }
+  .row:not(.head):hover { background: #191a1e; }
+  .row.past .cell { color: var(--faint); }
+  .row.adder { background: transparent; }
+  .row.adder .cell::placeholder { color: var(--faint); }
+  .work-grid { grid-template-columns: minmax(140px, 1.1fr) 120px minmax(160px, 1.6fr) 40px; }
+  .date-grid { grid-template-columns: 150px minmax(140px, 1.4fr) minmax(120px, 1fr) 40px; }
+  .note-grid { grid-template-columns: minmax(0, 1fr) 40px; }
+  @media (max-width: 640px) {
+    .work-grid { grid-template-columns: 1fr 104px 36px; } .work-grid > :nth-child(3) { grid-column: 1 / 3; }
+    .date-grid { grid-template-columns: 132px 1fr 36px; } .date-grid > :nth-child(3) { grid-column: 1 / 3; }
+  }
+
+  .cell { width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 0; background: transparent; outline: none; text-overflow: ellipsis; }
+  .cell:hover { background: rgba(255,255,255,.025); }
+  .cell:focus { background: var(--raised); box-shadow: inset 0 0 0 1px var(--accent); }
+  select.cell { appearance: none; cursor: pointer; }
+  input[type="date"].cell { color-scheme: dark; }
+  .pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12.5px; border: 1px solid var(--line-strong); }
+  .s-Active { color: var(--ok); } .s-Parked { color: var(--accent); } .s-Done { color: var(--faint); }
+
+  .icon { display: grid; place-items: center; width: 32px; height: 32px; margin: auto; border: 0; border-radius: 8px; background: transparent; color: var(--faint); cursor: pointer; opacity: 0; }
+  .row:hover .icon, .icon:focus-visible { opacity: 1; }
+  @media (hover: none) { .icon { opacity: 1; } }
+  .icon:hover { background: var(--raised); color: var(--danger); }
+  .empty { padding: 14px 12px; color: var(--faint); font-size: 14px; border-top: 1px solid var(--line); }
+  .empty:first-child { border-top: 0; }
+
+  aside { position: sticky; top: 76px; align-self: start; }
+  @media (max-width: 960px) { aside { position: static; } }
+  .log { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); max-height: calc(100vh - 150px); overflow: auto; }
+  .log li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .log li:first-child { border-top: 0; }
+  .log li.new { animation: arrive 2.4s ease-out; }
+  @keyframes arrive { from { background: rgba(233,196,106,.16); } to { background: transparent; } }
+  .who { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 14px; }
+  .who i { width: 8px; height: 8px; border-radius: 50%; }
+  .when { color: var(--faint); font-size: 12.5px; justify-self: end; }
+  .what { grid-column: 1; color: var(--text); font-size: 14px; overflow-wrap: anywhere; }
+  .undo { grid-column: 2; justify-self: end; align-self: start; padding: 3px 10px; border: 1px solid var(--line-strong); border-radius: 7px; background: transparent; color: var(--muted); font-size: 12.5px; cursor: pointer; }
+  .undo:hover { color: var(--text); border-color: var(--muted); }
+
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none;
+           display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 16px; border: 1px solid var(--line-strong); border-radius: 10px;
+           background: var(--raised); box-shadow: 0 12px 30px rgba(0,0,0,.4); transition: .2s ease; font-size: 14px; max-width: calc(100vw - 32px); }
+  .toast.show { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
+  .toast.error { border-color: rgba(240,138,122,.6); }
+  .toast button { padding: 3px 10px; border: 0; border-radius: 7px; background: var(--accent); color: #1b1608; font-weight: 600; cursor: pointer; }
+  @media (prefers-reduced-motion: reduce) { .log li.new { animation: none; } .toast { transition: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><i aria-hidden="true"></i>Mindhall <small>your shared mind</small></div>
+  <div class="status" id="status" role="status"><b aria-hidden="true"></b><span>Connecting</span></div>
+</header>
+<main>
+  <div>
+    <section aria-labelledby="h-work"><h2 id="h-work">Work <span id="n-work"></span></h2><div class="table" id="work"></div></section>
+    <section aria-labelledby="h-dates"><h2 id="h-dates">Dates <span id="n-dates"></span></h2><div class="table" id="dates"></div></section>
+    <section aria-labelledby="h-about"><h2 id="h-about">About you <span id="n-about"></span></h2><div class="table" id="about"></div></section>
+  </div>
+  <aside aria-labelledby="h-log"><h2 id="h-log">Change Log <span>every change, signed</span></h2><ul class="log" id="log"></ul></aside>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"><span></span></div>
+<script>
+(() => {
+  "use strict";
+  const base = location.pathname.endsWith("/") ? location.pathname : location.pathname + "/";
+  const STATUSES = ["Active", "Parked", "Done"];
+  let state = null, lastJSON = "", seen = null, lastOk = 0;
+
+  // ---------- tiny helpers (all data is inserted as text, never as HTML) ----------
+  function el(tag, attrs, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === "class") e.className = v;
+      else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+      else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? "" : v);
+    }
+    for (const kid of kids.flat()) if (kid !== null && kid !== undefined) e.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    return e;
+  }
+  async function api(method, path, body) {
+    const res = await fetch(base + "api/" + path, {
+      method, cache: "no-store",
+      headers: body ? { "Content-Type": "application/json" } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Something went wrong.");
+    return data;
+  }
+  let toastTimer;
+  function toast(message, undoId, isError) {
+    const t = document.getElementById("toast");
+    t.className = "toast show" + (isError ? " error" : "");
+    t.replaceChildren(el("span", {}, message));
+    if (undoId) t.append(el("button", { onclick: () => undo(undoId) }, "Undo"));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = "toast"; }, undoId ? 6000 : 3500);
+  }
+  function hue(name) { let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
+  function colorFor(name) { return name === "You" ? "var(--accent)" : `hsl(${hue(name)} 62% 66%)`; }
+  function ago(iso) {
+    const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 45) return "just now";
+    if (s < 3600) return Math.round(s / 60) + " min ago";
+    if (s < 86400) return Math.round(s / 3600) + " h ago";
+    return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  }
+  const today = () => new Date().toISOString().slice(0, 10);
+  const editing = () => document.activeElement && document.activeElement.classList.contains("cell");
+
+  // ---------- saving ----------
+  async function save(method, path, body, message) {
+    const before = state && state.changes[0] ? state.changes[0].id : 0;
+    try {
+      await api(method, path, body);
+      await refresh(true);
+      const top = state.changes[0];
+      toast(message, top && top.id !== before && top.undoable ? top.id : null);
+      return true;
+    } catch (e) {
+      toast(e.message, null, true);
+      await refresh(true);
+      return false;
+    }
+  }
+  async function undo(id) {
+    try { await api("POST", "undo/" + id); await refresh(true); toast("Undone."); }
+    catch (e) { toast(e.message, null, true); }
+  }
+
+  // ---------- cells ----------
+  function cell(value, onSave, opts) {
+    opts = opts || {};
+    const input = el("input", { class: "cell", type: opts.type || "text", placeholder: opts.placeholder || "",
+                                "aria-label": opts.label, maxlength: "500", list: opts.list });
+    input.value = value || "";
+    let original = input.value;
+    const commit = async () => {
+      const v = input.value.trim();
+      if (v === original) return;
+      if (opts.required && !v) { input.value = original; return; }
+      if (await onSave(v)) original = v; else input.value = original;
+    };
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") input.blur();
+      if (e.key === "Escape") { input.value = original; input.blur(); }
+    });
+    input.addEventListener("blur", commit);
+    return input;
+  }
+  function statusCell(value, onSave, label) {
+    const s = el("select", { class: "cell s-" + value, "aria-label": label },
+      STATUSES.map((v) => el("option", { value: v, selected: v === value }, v)));
+    s.addEventListener("change", async () => { s.className = "cell s-" + s.value; if (!(await onSave(s.value))) s.value = value; });
+    return s;
+  }
+  const del = (label, onClick) => el("button", { class: "icon", "aria-label": label, title: label, onclick: onClick }, "×");
+
+  // ---------- tables ----------
+  function renderWork(rows) {
+    const t = document.getElementById("work");
+    const head = el("div", { class: "row head work-grid" }, el("div", {}, "Name"), el("div", {}, "Status"), el("div", {}, "Next step"), el("div"));
+    const body = rows.map((w) => el("div", { class: "row work-grid" },
+      cell(w.name, (v) => save("PATCH", "work/" + w.id, { name: v }, "Saved."), { label: "Work name", required: true }),
+      statusCell(w.status, (v) => save("PATCH", "work/" + w.id, { status: v }, "Saved."), "Status of " + w.name),
+      cell(w.next_step, (v) => save("PATCH", "work/" + w.id, { next_step: v }, "Saved."), { label: "Next step for " + w.name, placeholder: "No next step" }),
+      del("Delete " + w.name, () => save("DELETE", "work/" + w.id, null, "Removed " + w.name + "."))));
+    const name = cell("", () => true, { label: "New work name", placeholder: "+ New project, client or course" });
+    const step = cell("", () => true, { label: "New work next step", placeholder: "Next step" });
+    const add = async () => {
+      const n = name.value.trim(); if (!n) return;
+      if (await save("POST", "work", { name: n, next_step: step.value.trim() }, "Added " + n + ".")) { name.value = ""; step.value = ""; }
+    };
+    for (const i of [name, step]) i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); add(); } });
+    const adder = el("div", { class: "row adder work-grid" }, name, el("div"), step, el("div"));
+    t.replaceChildren(head, ...(rows.length ? body : [el("div", { class: "empty" }, "No work yet. Add your first project below, or tell any AI about it.")]), adder);
+    document.getElementById("n-work").textContent = rows.length || "";
+  }
+
+  function renderDates(rows, workNames) {
+    const t = document.getElementById("dates");
+    const list = el("datalist", { id: "work-names" }, workNames.map((n) => el("option", { value: n })));
+    const head = el("div", { class: "row head date-grid" }, el("div", {}, "Date"), el("div", {}, "What"), el("div", {}, "Work"), el("div"));
+    const body = rows.map((d) => el("div", { class: "row date-grid" + (d.day < today() ? " past" : "") },
+      cell(d.day, (v) => save("PATCH", "date/" + d.id, { day: v }, "Saved."), { type: "date", label: "Date of " + d.what, required: true }),
+      cell(d.what, (v) => save("PATCH", "date/" + d.id, { what: v }, "Saved."), { label: "What happens on " + d.day, required: true }),
+      cell(d.work, (v) => save("PATCH", "date/" + d.id, { work: v }, "Saved."), { label: "Work for " + d.what, placeholder: "No work", list: "work-names" }),
+      del("Delete " + d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + "."))));
+    const day = cell("", () => true, { type: "date", label: "New date" });
+    const what = cell("", () => true, { label: "New date, what happens", placeholder: "+ New date: launch, deadline, call" });
+    const work = cell("", () => true, { label: "New date, work", placeholder: "Work", list: "work-names" });
+    const add = async () => {
+      const w = what.value.trim(); if (!w || !day.value) { toast("Add a date and what happens.", null, true); return; }
+      if (await save("POST", "date", { day: day.value, what: w, work: work.value.trim() }, "Added " + w + ".")) { what.value = ""; work.value = ""; day.value = ""; }
+    };
+    for (const i of [what, work]) i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); add(); } });
+    const adder = el("div", { class: "row adder date-grid" }, day, what, work, el("div"));
+    t.replaceChildren(list, head, ...(rows.length ? body : [el("div", { class: "empty" }, "No dates yet.")]), adder);
+    document.getElementById("n-dates").textContent = rows.length || "";
+  }
+
+  function renderAbout(rows) {
+    const t = document.getElementById("about");
+    const body = rows.map((n) => el("div", { class: "row note-grid" },
+      cell(n.note, (v) => save("PATCH", "note/" + n.id, { note: v }, "Saved."), { label: "Note", required: true }),
+      del("Delete note", () => save("DELETE", "note/" + n.id, null, "Note removed."))));
+    const note = cell("", () => true, { label: "New note", placeholder: "+ How you work, what you prefer, rules for your AIs" });
+    note.addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return; e.preventDefault();
+      const v = note.value.trim(); if (v && (await save("POST", "note", { note: v }, "Note added."))) note.value = "";
+    });
+    t.replaceChildren(...(rows.length ? body : [el("div", { class: "empty" }, "Nothing yet. Add how you like to work.")]), el("div", { class: "row adder note-grid" }, note, el("div")));
+    document.getElementById("n-about").textContent = rows.length || "";
+  }
+
+  function renderLog(changes) {
+    const fresh = seen ? changes.filter((c) => !seen.has(c.id)).map((c) => c.id) : [];
+    seen = new Set(changes.map((c) => c.id));
+    const items = changes.map((c) => el("li", { class: fresh.includes(c.id) ? "new" : "" },
+      el("span", { class: "who" }, el("i", { style: "background:" + colorFor(c.by), "aria-hidden": "true" }), c.by),
+      el("time", { class: "when", datetime: c.at, title: new Date(c.at).toLocaleString() }, ago(c.at)),
+      el("span", { class: "what" }, c.summary),
+      c.undoable ? el("button", { class: "undo", onclick: () => undo(c.id), "aria-label": "Undo: " + c.summary }, "Undo") : null));
+    document.getElementById("log").replaceChildren(...(items.length ? items : [el("li", {}, el("span", { class: "what" }, "No changes yet."))]));
+  }
+
+  function render() {
+    renderWork(state.work);
+    renderDates(state.dates, state.work.map((w) => w.name));
+    renderAbout(state.about);
+    renderLog(state.changes);
+  }
+
+  // ---------- live refresh ----------
+  function setStatus(ok) {
+    const s = document.getElementById("status");
+    s.classList.toggle("off", !ok);
+    s.querySelector("span").textContent = ok ? "Live" : "Offline, retrying";
+  }
+  async function refresh(force) {
+    try {
+      const data = await api("GET", "mind");
+      lastOk = Date.now(); setStatus(true);
+      const json = JSON.stringify(data);
+      if (!force && (json === lastJSON || editing())) return;
+      lastJSON = json; state = data; render();
+    } catch (e) { setStatus(false); }
+  }
+  refresh(true);
+  setInterval(() => refresh(false), 4000);
+  setInterval(() => { if (state) document.querySelectorAll(".log time").forEach((t) => { t.textContent = ago(t.getAttribute("datetime")); }); }, 30000);
+  window.addEventListener("focus", () => refresh(false));
+})();
+</script>
+</body>
+</html>

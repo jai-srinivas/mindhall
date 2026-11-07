@@ -64,6 +64,21 @@ Keep that address private: the secret in it is what protects your mind. Requests
 
 With a permanent address, also set `MINDHALL_MCP_ALLOWED_HOSTS` (for example `mcp.example.com`) so every request's Host and Origin headers are checked.
 
+## Read and edit your mind
+
+The same server gives you a clean web page with your mind as simple tables. Open it in any browser:
+
+```
+https://<your-address>/<your-secret>/
+```
+
+- **Work, Dates and About you** as tables: click any cell to edit, add rows at the bottom, delete with ×.
+- **The Change Log** shows every change and who made it, updating live as your AIs work.
+- **Undo** any change, whether an AI or you made it. Undos are signed changes too, so they can be undone.
+- Your edits are signed **You** (change it with `MINDHALL_WEB_NAME`).
+
+The page loads nothing from other sites and never sends its address on, so the secret in it stays private. Don't share screenshots of the address bar.
+
 ## Settings
 
 Set these in a profile's `.env` (`~/.hermes/.env` for the default profile, `~/.hermes/profiles/<name>/.env` for others). Mindhall reads them through Hermes's profile-aware settings, never by opening the file itself.
@@ -79,7 +94,7 @@ Every profile shares one mind by default, which is the point. Give a profile its
 
 - **One local SQLite file** at `~/.mindhall/mindhall.db` (or your `MINDHALL_DB`), plus `~/.mindhall/sessions.json`, which remembers which profile each session belongs to.
 - **No network calls** from the Hermes plugin, no telemetry, no credentials.
-- **The MCP server is optional** and listens only on localhost. It is reachable from outside only if you expose it yourself, for example with a tunnel.
+- **The MCP server is optional** and listens only on localhost. It also serves the tables page described above. It is reachable from outside only if you expose it yourself, for example with a tunnel.
 - Text is capped at 500 characters per note, name, step or date label.
 
 ## Updating

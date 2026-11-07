@@ -114,3 +114,64 @@ def test_overlong_text_is_refused_and_nothing_is_saved(mind):
     with pytest.raises(engine.MindhallError):
         mind.set_work("Mindhall", "Claude", next_step="y" * (engine.MAX_TEXT + 1))
     assert mind.is_empty() and mind.recent_changes() == []
+
+
+def latest(mind):
+    return mind.recent_changes()[0]
+
+
+def test_undo_reverses_adds_moves_and_removals_for_dates(mind):
+    mind.set_date("Launch", "2026-11-20", "Claude")
+    mind.set_date("Launch", "2026-11-22", "ChatGPT")
+    mind.undo(latest(mind)["id"], "You")
+    assert mind.all_dates(today=TODAY)[0]["day"] == "2026-11-20"
+    assert latest(mind)["by"] == "You" and latest(mind)["summary"].startswith("Undid: Moved Launch")
+    date_id = mind.all_dates(today=TODAY)[0]["id"]
+    mind.remove_date(date_id, "Claude")
+    mind.undo(latest(mind)["id"], "You")
+    assert mind.all_dates(today=TODAY)[0]["id"] == date_id  # comes back with the same id
+
+
+def test_undo_an_add_removes_it_and_undoing_the_undo_brings_it_back(mind):
+    mind.add_note("Prefers short answers", "Claude")
+    mind.undo(latest(mind)["id"], "You")
+    assert mind.snapshot(today=TODAY)["about"] == []
+    mind.undo(latest(mind)["id"], "You")
+    assert mind.snapshot(today=TODAY)["about"][0]["note"] == "Prefers short answers"
+
+
+def test_undo_work_updates_renames_and_removals(mind):
+    mind.set_work("Mindhall", "Claude", next_step="Ship")
+    work_id = mind.everything()["work"][0]["id"]
+    mind.edit_work(work_id, "You", name="Mindhall v1", status="Parked")
+    mind.undo(latest(mind)["id"], "You")
+    assert mind.everything()["work"][0] | {"id": 0} == {"id": 0, "name": "Mindhall", "status": "Active", "next_step": "Ship"}
+    mind.remove_work(work_id, "You")
+    mind.undo(latest(mind)["id"], "You")
+    assert mind.everything()["work"][0]["name"] == "Mindhall"
+
+
+def test_undo_refuses_when_something_changed_later(mind):
+    mind.set_date("Launch", "2026-11-20", "Claude")
+    first = latest(mind)["id"]
+    mind.set_date("Launch", "2026-11-22", "ChatGPT")
+    with pytest.raises(engine.MindhallError):
+        mind.undo(first, "You")
+
+
+def test_edit_note_and_rename_collisions(mind):
+    note = mind.add_note("Works late", "Claude")
+    mind.edit_note(note["id"], "Works early", "You")
+    assert mind.snapshot(today=TODAY)["about"][0]["note"] == "Works early"
+    mind.set_work("A", "You")
+    mind.set_work("B", "You")
+    b_id = [w for w in mind.everything()["work"] if w["name"] == "B"][0]["id"]
+    with pytest.raises(engine.MindhallError):
+        mind.edit_work(b_id, "You", name="a")  # names are unique, ignoring case
+
+
+def test_everything_marks_which_changes_can_be_undone(mind):
+    mind.add_note("Hello", "Claude")
+    state = mind.everything()
+    assert state["changes"][0]["undoable"] is True
+    assert set(state) == {"about", "work", "dates", "changes"}
