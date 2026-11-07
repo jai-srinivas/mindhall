@@ -81,16 +81,21 @@ class Mind:
 
     def __init__(self, path: str | Path | None = None):
         self.path = Path(path) if path else default_path()
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self._conn() as c:
-            c.executescript(SCHEMA)
+        with self._conn():
+            pass  # creates the folder, file and tables on first use
 
     @contextmanager
     def _conn(self):
+        # Checked on every connection, so a mind that was moved or deleted
+        # while Hermes or the MCP server is running is recreated cleanly.
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        fresh = not self.path.exists()
         conn = sqlite3.connect(self.path, timeout=5)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")  # Hermes and the MCP server can share the file
         conn.execute("PRAGMA busy_timeout=5000")
+        if fresh:
+            conn.executescript(SCHEMA)
         try:
             yield conn
             conn.commit()

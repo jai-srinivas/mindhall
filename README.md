@@ -9,7 +9,7 @@ This repo is the Hermes plugin. An MCP server for Claude, ChatGPT and Cursor is 
 ## Install
 
 ```bash
-hermes plugins install jai-srinivas/mindhall --enable
+hermes plugins install <your-github-user>/mindhall --enable
 ```
 
 Restart Hermes. Then tell your agent about a project or a date, and type `/mindhall` to see what it saved.
@@ -23,6 +23,18 @@ Restart Hermes. Then tell your agent about a project or a date, and type `/mindh
 - **It never breaks your agent.** If the database can't be read, the turn goes ahead without it.
 
 Mindhall is a regular plugin, not a memory provider, so it works alongside Honcho, Mem0 or whatever memory you already use.
+
+## Connect Claude, ChatGPT and other AI apps
+
+`mcp_server.py` lets any app that supports MCP use the same mind as your Hermes agents. Every change is signed with the app's name, so the Change Log shows "Claude: Moved Launch to Nov 20".
+
+```bash
+pip install "mcp>=2"
+export MINDHALL_MCP_SECRET=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+python3 mcp_server.py
+```
+
+It listens on `127.0.0.1:8765`. Put it behind HTTPS (for example a Cloudflare tunnel), then add `https://<your-address>/<secret>/mcp` as a custom connector in Claude or ChatGPT. Keep that address private: the secret in it is what protects your mind.
 
 ## Settings
 
