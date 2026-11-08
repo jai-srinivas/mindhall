@@ -2,117 +2,309 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
 <title>Mindhall</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%2309090b'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23ffcc66'/%3E%3C/svg%3E">
 <style>
   :root {
-    --bg: #0f1012; --surface: #16171a; --raised: #1d1f23; --line: #26282d; --line-strong: #34363c;
-    --text: #ecebe8; --muted: #9c9a94; --faint: #6f6d68;
-    --accent: #e9c46a; --danger: #f08a7a; --ok: #7fd1a8;
-    --radius: 10px;
+    --bg: #ffffff; --side: #f7f7f5; --panel: #ffffff; --panel-2: #f7f7f5; --panel-3: #efefed; --hover: #f1f1ef;
+    --line: #ececea; --line-2: #e1e1de; --line-3: #cfcfcb;
+    --text: #37352f; --muted: #73726e; --faint: #8f8e8a;
+    --accent: #2383e2; --accent-ink: #ffffff; --you: #c28b00;
+    --tag-gray: #e9e9e7; --tag-gray-ink: #4b4a46;
+    --tag-green: #dbeddb; --tag-green-ink: #1c3829;
+    --tag-yellow: #fbeccb; --tag-yellow-ink: #4d3511;
+    --tag-orange: #fadec9; --tag-orange-ink: #4a2a0f;
+    --tag-red: #ffe2dd; --tag-red-ink: #5d1715;
+    --st-active: #1f7a4f; --st-parked: #9a5b06; --st-done: #b4b3af; --soon: #c2410c;
+    --shadow: 0 1px 2px rgba(15,15,15,.06), 0 8px 28px rgba(15,15,15,.12);
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --r: 8px;
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #191919; --side: #202020; --panel: #191919; --panel-2: #202020; --panel-3: #2a2a2a; --hover: #252525;
+    --line: #2a2a2a; --line-2: #333333; --line-3: #444444;
+    --text: #e6e6e4; --muted: #a3a3a0; --faint: #8a8a87;
+    --accent: #3b8fe0; --accent-ink: #ffffff; --you: #d9a72a;
+    --tag-gray: #373737; --tag-gray-ink: #d4d4d2;
+    --tag-green: #243d30; --tag-green-ink: #b8dfc7;
+    --tag-yellow: #44391f; --tag-yellow-ink: #f0d79a;
+    --tag-orange: #4a3220; --tag-orange-ink: #f3c6a1;
+    --tag-red: #4b2a28; --tag-red-ink: #f4b8b0;
+    --st-active: #4cc38a; --st-parked: #e2b23f; --st-done: #6b6b68; --soon: #f0954b;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.45);
+    color-scheme: dark;
+  } }
+  :root[data-theme="dark"] {
+    --bg: #191919; --side: #202020; --panel: #191919; --panel-2: #202020; --panel-3: #2a2a2a; --hover: #252525;
+    --line: #2a2a2a; --line-2: #333333; --line-3: #444444;
+    --text: #e6e6e4; --muted: #a3a3a0; --faint: #8a8a87;
+    --accent: #3b8fe0; --accent-ink: #ffffff; --you: #d9a72a;
+    --tag-gray: #373737; --tag-gray-ink: #d4d4d2;
+    --tag-green: #243d30; --tag-green-ink: #b8dfc7;
+    --tag-yellow: #44391f; --tag-yellow-ink: #f0d79a;
+    --tag-orange: #4a3220; --tag-orange-ink: #f3c6a1;
+    --tag-red: #4b2a28; --tag-red-ink: #f4b8b0;
+    --st-active: #4cc38a; --st-parked: #e2b23f; --st-done: #6b6b68; --soon: #f0954b;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.45);
     color-scheme: dark;
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--text); }
-  body { font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-variant-numeric: tabular-nums; }
-  button, input, select { font: inherit; color: inherit; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--line-3) transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border: 3px solid transparent; border-radius: 10px; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--line-3); border: 3px solid transparent; background-clip: content-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
+  body { font: 15px/1.6 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid rgba(35,131,226,.55); outline-offset: 1px; border-radius: 4px; }
+  .mono { font-size: 12.5px; }
 
-  header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-           padding: 14px clamp(16px, 4vw, 40px); background: rgba(15,16,18,.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 17px; letter-spacing: -0.01em; }
-  .brand i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px rgba(233,196,106,.55); }
-  .brand small { color: var(--muted); font-weight: 400; font-size: 14px; }
-  .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
-  .status b { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
-  .status.off b { background: var(--danger); }
+  /* ---------- shell ---------- */
+  .app { display: grid; grid-template-columns: 240px minmax(0,1fr); min-height: 100%; }
+  aside.side { position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; gap: 22px; padding: 14px 8px; background: var(--side); border-right: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 9px; padding: 6px 10px; font-weight: 600; font-size: 14.5px; }
+  .brand i { width: 18px; height: 18px; border-radius: 5px; background: var(--text); box-shadow: inset 0 0 0 5px var(--side), inset 0 0 0 9px var(--you); }
+  .brand small { margin-left: auto; }
+  nav.views { display: flex; flex-direction: column; gap: 1px; }
+  nav.views a { display: flex; align-items: center; gap: 10px; padding: 5px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14px; }
+  nav.views a:hover { background: var(--hover); }
+  nav.views a[aria-current="page"] { background: var(--panel-3); color: var(--text); font-weight: 550; }
+  nav.views a svg { width: 17px; height: 17px; flex: none; opacity: .75; }
+  nav.views a .count { margin-left: auto; font-size: 12px; color: var(--faint); }
+  .side h3 { margin: 0 0 4px; padding: 0 10px; font-size: 12px; font-weight: 550; color: var(--faint); }
+  .agents { display: flex; flex-direction: column; }
+  .agent { display: flex; align-items: center; gap: 10px; padding: 5px 10px; border-radius: 6px; }
+  .agent:hover { background: var(--hover); }
+  .agent .meta { min-width: 0; }
+  .agent b { display: block; font-weight: 500; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .agent span { display: block; color: var(--faint); font-size: 12px; }
+  .side .foot { margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding: 0 10px; }
+  .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; }
+  .status b { width: 7px; height: 7px; border-radius: 50%; background: #4dab9a; }
+  .status.off b { background: #e16259; }
+  .kbd { display: inline-flex; align-items: center; gap: 3px; }
+  kbd { font-family: inherit; font-size: 11px; padding: 0 5px; border: 1px solid var(--line-2); border-radius: 4px; color: var(--faint); background: var(--panel); }
 
-  main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; padding: 28px clamp(16px, 4vw, 40px) 80px; max-width: 1360px; margin: 0 auto; }
-  @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+  main { min-width: 0; padding: 34px clamp(18px, 6vw, 96px) 90px; max-width: 1240px; }
+  .top { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 30px; }
+  .top h1 { margin: 0; font-size: 32px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em; }
+  .top p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+  .top .actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .search { display: flex; align-items: center; gap: 8px; min-width: 210px; padding: 5px 8px 5px 10px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--panel); color: var(--faint); cursor: pointer; font-size: 14px; }
+  .search:hover { background: var(--hover); }
+  .search svg { width: 15px; height: 15px; }
+  .search .kbd { margin-left: auto; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--panel); cursor: pointer; font-weight: 500; font-size: 14px; }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { border-color: transparent; background: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.06); background: var(--accent); }
+  .btn svg { width: 15px; height: 15px; }
+  .menu-btn { display: none; }
 
-  section { margin-bottom: 34px; }
-  h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 10px; font-size: 18px; font-weight: 650; letter-spacing: -0.01em; }
-  h2 span { color: var(--faint); font-size: 13px; font-weight: 500; }
+  /* ---------- overview ---------- */
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 30px; }
+  .grid2 { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 36px; align-items: start; }
+  .stack { display: flex; flex-direction: column; gap: 34px; min-width: 0; }
+  .card { border: 0; background: transparent; }
+  .stat { padding: 14px 16px; border-radius: var(--r); background: var(--panel-2); }
+  .stat .label { color: var(--muted); font-size: 13px; }
+  .stat .value { margin-top: 6px; font-size: 26px; font-weight: 650; }
+  .stat .value.small { font-size: 17px; margin-top: 10px; }
+  .stat .sub { margin-top: 2px; color: var(--faint); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 0 2px 8px; border-bottom: 1px solid var(--line); }
+  .card-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+  .card-head a { color: var(--faint); text-decoration: none; font-size: 13px; }
+  .card-head a:hover { color: var(--text); text-decoration: underline; }
+  .list-row { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+  .list-row .grow { flex: 1; min-width: 0; }
+  .list-row .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list-row .sub { color: var(--faint); font-size: 13px; }
 
-  .table { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
-  .row { display: grid; align-items: center; border-top: 1px solid var(--line); min-height: 44px; }
-  .row:first-child { border-top: 0; }
-  .row.head { min-height: 36px; background: var(--raised); color: var(--muted); font-size: 13px; }
-  .row.head > div { padding: 0 12px; }
-  .row:not(.head):hover { background: #191a1e; }
-  .row.past .cell { color: var(--faint); }
-  .row.adder { background: transparent; }
-  .row.adder .cell::placeholder { color: var(--faint); }
-  .work-grid { grid-template-columns: minmax(140px, 1.1fr) 120px minmax(160px, 1.6fr) 40px; }
-  .date-grid { grid-template-columns: 150px minmax(140px, 1.4fr) minmax(120px, 1fr) 40px; }
-  .note-grid { grid-template-columns: minmax(0, 1fr) 40px; }
-  @media (max-width: 640px) {
-    .work-grid { grid-template-columns: 1fr 104px 36px; } .work-grid > :nth-child(3) { grid-column: 1 / 3; }
-    .date-grid { grid-template-columns: 132px 1fr 36px; } .date-grid > :nth-child(3) { grid-column: 1 / 3; }
+  /* ---------- tables (Notion database style) ---------- */
+  .table { border-top: 1px solid var(--line); background: transparent; overflow-x: auto; }
+  .tr { display: grid; align-items: center; min-height: 40px; border-bottom: 1px solid var(--line); }
+  .tr.head { min-height: 34px; color: var(--faint); font-size: 13px; font-weight: 500; }
+  .tr.head > div { padding: 0 8px; }
+  .tr:not(.head):hover { background: var(--hover); }
+  .tr.flash { animation: flash 2s ease-out; }
+  @keyframes flash { from { background: rgba(35,131,226,.14); } to { background: transparent; } }
+  .tr.past .cell { color: var(--faint); }
+  .work-grid { grid-template-columns: minmax(160px,1.2fr) 128px minmax(180px,1.7fr) 40px; }
+  .date-grid { grid-template-columns: 164px 112px minmax(0,1fr) 40px; }
+  .note-grid { grid-template-columns: minmax(0,1fr) 40px; }
+  .cell { width: 100%; min-height: 40px; padding: 0 8px; border: 0; background-color: transparent; outline: none; text-overflow: ellipsis; border-radius: 4px; }
+  .cell::placeholder { color: var(--faint); }
+  .cell:focus { background-color: var(--panel); box-shadow: inset 0 0 0 2px rgba(35,131,226,.45); }
+  input[type="date"].cell { font-size: 14px; }
+  .pill { appearance: none; -webkit-appearance: none; margin: 0 6px; padding: 2px 24px 2px 8px; border: 0; border-radius: 6px; font-size: 13.5px; font-weight: 500; color: var(--text); cursor: pointer; width: max-content; background: none; }
+  .pill:hover, .pill:focus { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3 3 3-3' fill='none' stroke='%239b9a97' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 8px center, var(--hover); }
+  .pill.Active { color: var(--st-active); }
+  .pill.Parked { color: var(--st-parked); }
+  .pill.Done { color: var(--faint); }
+  .when { margin: 0 8px; width: max-content; font-size: 13.5px; color: var(--muted); background: none; }
+  .when.soon { color: var(--soon); font-weight: 500; }
+  .when.past { color: var(--faint); }
+  .icon-btn { display: grid; place-items: center; width: 26px; height: 26px; margin: auto; border: 0; border-radius: 4px; background: transparent; color: var(--faint); cursor: pointer; opacity: 0; }
+  .tr:hover .icon-btn, .icon-btn:focus-visible, .icon-btn.show { opacity: 1; }
+  @media (hover: none) { .icon-btn { opacity: 1; } }
+  .icon-btn:hover { background: var(--panel-3); color: var(--text); }
+  .icon-btn svg { width: 14px; height: 14px; }
+  .tr.adder { background: transparent; }
+  .add-row { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 38px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--faint); font-size: 14px; cursor: pointer; }
+  .add-row:hover, .add-row:focus-visible { background: var(--hover); color: var(--text); }
+  .add-row svg { width: 15px; height: 15px; }
+  .add-row .lbl { max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap; transition: max-width .2s ease, opacity .2s ease; }
+  .add-row:hover .lbl, .add-row:focus-visible .lbl { max-width: 220px; opacity: 1; }
+  .past-block { margin-top: 34px; }
+  .past-block .day { margin: 0 0 6px; }
+  .table.muted .cell, .table.muted .when { color: var(--faint); }
+  .empty { padding: 22px 8px; color: var(--faint); border-bottom: 1px solid var(--line); }
+  .empty b { display: block; color: var(--muted); font-weight: 550; margin-bottom: 2px; }
+
+  /* ---------- activity ---------- */
+  .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; box-shadow: none !important; }
+  .event .dot { margin-top: 8px; }
+  .agent .dot { margin: 0 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--panel); color: var(--muted); cursor: pointer; font-size: 13px; }
+  .chip i { width: 7px; height: 7px; border-radius: 50%; }
+  .chip:hover { background: var(--hover); }
+  .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .day { margin: 26px 0 6px; font-size: 13px; color: var(--faint); font-weight: 550; }
+  .day:first-child { margin-top: 0; }
+  .event { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 12px; align-items: start; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+  .event:first-child { border-top: 1px solid var(--line); }
+  .event.new { animation: flash 2s ease-out; }
+  .event .who { font-weight: 600; font-size: 14px; }
+  .event .what { overflow-wrap: anywhere; }
+  .event .t { font-size: 12.5px; color: var(--faint); white-space: nowrap; }
+  .event .side-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .undo { padding: 1px 8px; border-radius: 4px; border: 1px solid var(--line-2); background: var(--panel); color: var(--muted); font-size: 12.5px; cursor: pointer; }
+  .undo:hover { background: var(--hover); color: var(--text); }
+  .noundo { font-size: 12px; color: var(--faint); }
+
+  /* ---------- overlays ---------- */
+  .scrim { position: fixed; inset: 0; z-index: 20; display: none; align-items: flex-start; justify-content: center; padding: 14vh 16px 16px; background: rgba(15,15,15,.32); }
+  .scrim.open { display: flex; }
+  .dialog { width: min(620px, 100%); border-radius: 10px; background: var(--panel); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--line); }
+  .palette input { width: 100%; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--line); background: transparent; font-size: 16px; outline: none; }
+  .palette input::placeholder { color: var(--faint); }
+  .results { max-height: 52vh; overflow: auto; padding: 6px; }
+  .group-title { padding: 8px 10px 4px; font-size: 12px; color: var(--faint); font-weight: 550; }
+  .result { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  .result svg { width: 16px; height: 16px; color: var(--faint); flex: none; }
+  .result .sub { margin-left: auto; color: var(--faint); font-size: 12.5px; }
+  .result[aria-selected="true"] { background: var(--hover); }
+  .pal-foot { display: flex; gap: 14px; padding: 8px 14px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; }
+  .form { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .form h2 { margin: 0; font-size: 17px; }
+  .seg { display: inline-flex; padding: 2px; border-radius: 6px; background: var(--panel-2); width: max-content; }
+  .seg button { padding: 4px 12px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px rgba(15,15,15,.1); }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 13px; color: var(--muted); }
+  .field input, .field select { padding: 7px 10px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--panel); outline: none; }
+  .field input:focus, .field select:focus { box-shadow: 0 0 0 2px rgba(35,131,226,.35); border-color: rgba(35,131,226,.6); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+  .toast { position: fixed; left: 50%; bottom: 22px; z-index: 30; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; border-radius: 8px; background: var(--text); color: var(--bg); box-shadow: var(--shadow); transition: .2s ease; font-size: 14px; max-width: calc(100vw - 32px); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast.error { background: #e16259; color: #fff; }
+  .toast button { padding: 2px 9px; border: 0; border-radius: 4px; background: var(--accent); color: #fff; font-weight: 550; cursor: pointer; }
+  .banner { display: none; margin-bottom: 18px; padding: 10px 14px; border-radius: 6px; background: var(--tag-red); color: var(--tag-red-ink); }
+  .banner.show { display: block; }
+  .skel { height: 14px; border-radius: 4px; background: var(--panel-3); }
+
+  @media (max-width: 1100px) { .grid4 { grid-template-columns: repeat(2, minmax(0,1fr)); } .grid2 { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    aside.side { position: fixed; z-index: 15; left: 0; width: 260px; transform: translateX(-100%); transition: transform .2s; box-shadow: var(--shadow); }
+    aside.side.open { transform: none; }
+    .menu-btn { display: inline-flex; }
+    .top { align-items: center; }
+    .top h1 { font-size: 26px; }
+    .search { min-width: 0; }
+    .search .label, .search .kbd { display: none; }
+    .work-grid { grid-template-columns: 1fr 112px 36px; } .work-grid > :nth-child(3) { grid-column: 1 / 3; }
+    .date-grid { grid-template-columns: 150px 1fr 36px; } .date-grid > :nth-child(2) { display: none; }
   }
-
-  .cell { width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 0; background: transparent; outline: none; text-overflow: ellipsis; }
-  .cell:hover { background: rgba(255,255,255,.025); }
-  .cell:focus { background: var(--raised); box-shadow: inset 0 0 0 1px var(--accent); }
-  select.cell { appearance: none; cursor: pointer; }
-  input[type="date"].cell { color-scheme: dark; }
-  .pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12.5px; border: 1px solid var(--line-strong); }
-  .s-Active { color: var(--ok); } .s-Parked { color: var(--accent); } .s-Done { color: var(--faint); }
-
-  .icon { display: grid; place-items: center; width: 32px; height: 32px; margin: auto; border: 0; border-radius: 8px; background: transparent; color: var(--faint); cursor: pointer; opacity: 0; }
-  .row:hover .icon, .icon:focus-visible { opacity: 1; }
-  @media (hover: none) { .icon { opacity: 1; } }
-  .icon:hover { background: var(--raised); color: var(--danger); }
-  .empty { padding: 14px 12px; color: var(--faint); font-size: 14px; border-top: 1px solid var(--line); }
-  .empty:first-child { border-top: 0; }
-
-  aside { position: sticky; top: 76px; align-self: start; }
-  @media (max-width: 960px) { aside { position: static; } }
-  .log { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); max-height: calc(100vh - 150px); overflow: auto; }
-  .log li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 14px; border-top: 1px solid var(--line); }
-  .log li:first-child { border-top: 0; }
-  .log li.new { animation: arrive 2.4s ease-out; }
-  @keyframes arrive { from { background: rgba(233,196,106,.16); } to { background: transparent; } }
-  .who { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 14px; }
-  .who i { width: 8px; height: 8px; border-radius: 50%; }
-  .when { color: var(--faint); font-size: 12.5px; justify-self: end; }
-  .what { grid-column: 1; color: var(--text); font-size: 14px; overflow-wrap: anywhere; }
-  .undo { grid-column: 2; justify-self: end; align-self: start; padding: 3px 10px; border: 1px solid var(--line-strong); border-radius: 7px; background: transparent; color: var(--muted); font-size: 12.5px; cursor: pointer; }
-  .undo:hover { color: var(--text); border-color: var(--muted); }
-  .noundo { grid-column: 2; justify-self: end; align-self: start; color: var(--faint); font-size: 12px; padding-top: 3px; }
-
-  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none;
-           display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 16px; border: 1px solid var(--line-strong); border-radius: 10px;
-           background: var(--raised); box-shadow: 0 12px 30px rgba(0,0,0,.4); transition: .2s ease; font-size: 14px; max-width: calc(100vw - 32px); }
-  .toast.show { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
-  .toast.error { border-color: rgba(240,138,122,.6); }
-  .toast button { padding: 3px 10px; border: 0; border-radius: 7px; background: var(--accent); color: #1b1608; font-weight: 600; cursor: pointer; }
-  @media (prefers-reduced-motion: reduce) { .log li.new { animation: none; } .toast { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand"><i aria-hidden="true"></i>Mindhall <small>your shared mind</small></div>
-  <div class="status" id="status" role="status"><b aria-hidden="true"></b><span>Connecting</span></div>
-</header>
-<main>
-  <div>
-    <section aria-labelledby="h-work"><h2 id="h-work">Work <span id="n-work"></span></h2><div class="table" id="work"></div></section>
-    <section aria-labelledby="h-dates"><h2 id="h-dates">Dates <span id="n-dates"></span></h2><div class="table" id="dates"></div></section>
-    <section aria-labelledby="h-about"><h2 id="h-about">About you <span id="n-about"></span></h2><div class="table" id="about"></div></section>
-  </div>
-  <aside aria-labelledby="h-log"><h2 id="h-log">Change Log <span>every change, signed</span></h2><ul class="log" id="log"></ul></aside>
-</main>
-<div class="toast" id="toast" role="status" aria-live="polite"><span></span></div>
+<div class="app">
+  <aside class="side" id="side" aria-label="Navigation">
+    <div class="brand"><i aria-hidden="true"></i>Mindhall</div>
+    <nav class="views" id="nav" aria-label="Views"></nav>
+    <div><h3>Your AIs</h3><div class="agents" id="agents"></div></div>
+    <div class="foot">
+      <div class="mono" style="color:var(--faint)">every change, signed</div>
+    </div>
+  </aside>
+  <main>
+    <div class="top">
+      <button class="btn menu-btn" id="menu-btn" aria-label="Open navigation">☰</button>
+      <div><h1 id="title">Overview</h1><p id="subtitle"></p></div>
+      <div class="actions">
+        <button class="btn primary" id="open-new"><span class="ico-plus"></span>New</button>
+      </div>
+    </div>
+    <div class="banner" id="banner" role="alert">Can’t reach your mind right now. Retrying automatically…</div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<div class="scrim" id="new-scrim"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="new-title">
+  <form class="form" id="new-form">
+    <h2 id="new-title">Add to your mind</h2>
+    <div class="seg" id="new-kind" role="group" aria-label="What to add"></div>
+    <div id="new-fields"></div>
+    <div class="form-actions"><button type="button" class="btn" id="new-cancel">Cancel</button><button type="submit" class="btn primary">Add</button></div>
+  </form>
+</div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
 (() => {
   "use strict";
   const base = location.pathname.endsWith("/") ? location.pathname : location.pathname + "/";
   const STATUSES = ["Active", "Parked", "Done"];
-  let state = null, lastJSON = "", seen = null, lastOk = 0;
+  const VIEWS = [
+    { id: "overview", label: "Overview", icon: "grid" },
+    { id: "work", label: "Projects", icon: "folder" },
+    { id: "dates", label: "Dates", icon: "calendar" },
+    { id: "about", label: "About you", icon: "user" },
+    { id: "activity", label: "Activity", icon: "pulse" },
+  ];
+  const PALETTE = ["#2f80c4", "#3d8a6b", "#8a62b0", "#cf6f2e", "#c04d8a", "#3a8fa3", "#6a8f3c", "#5b6fd1"];
+  let state = null, lastJSON = "", view = "overview", seen = null, colors = {}, agentFilter = "All", highlight = null;
 
-  // ---------- tiny helpers (all data is inserted as text, never as HTML) ----------
+  // ---------- helpers (data is always inserted as text, never as HTML) ----------
+  const ICONS = {
+    grid: '<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>',
+    folder: '<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+    pulse: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    note: '<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4"/>',
+  };
+  function icon(name) {
+    const t = document.createElement("template");
+    t.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + "</svg>";
+    return t.content.firstChild;
+  }
   function el(tag, attrs, ...kids) {
     const e = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs || {})) {
@@ -120,15 +312,12 @@
       else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
       else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? "" : v);
     }
-    for (const kid of kids.flat()) if (kid !== null && kid !== undefined) e.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    for (const kid of kids.flat(Infinity)) if (kid !== null && kid !== undefined) e.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
     return e;
   }
   async function api(method, path, body) {
-    const res = await fetch(base + "api/" + path, {
-      method, cache: "no-store",
-      headers: body ? { "Content-Type": "application/json" } : {},
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    const res = await fetch(base + "api/" + path, { method, cache: "no-store",
+      headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "Something went wrong.");
     return data;
@@ -140,26 +329,37 @@
     t.replaceChildren(el("span", {}, message));
     if (undoId) t.append(el("button", { onclick: () => undo(undoId) }, "Undo"));
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.className = "toast"; }, undoId ? 6000 : 3500);
+    toastTimer = setTimeout(() => { t.className = "toast"; }, undoId ? 6000 : 3200);
   }
-  // Clearly different colours per agent. "You" is always the accent gold.
-  const PALETTE = ["#7cc4ff", "#6fd6a0", "#c3a2ff", "#ff9f7f", "#ff8fbf", "#76dcdc", "#b9df7a", "#9fb0ff"];
-  let colors = {};
-  function assignColors(changes) {
-    colors = {};
-    [...new Set(changes.map((c) => c.by))].filter((n) => n !== "You").sort()
-      .forEach((n, i) => { colors[n] = PALETTE[i % PALETTE.length]; });
+  const midnight = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+  const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  function daysUntil(day) { return Math.round((new Date(day + "T00:00:00") - midnight(new Date())) / 86400000); }
+  function whenLabel(day) {
+    const n = daysUntil(day);
+    if (n === 0) return "Today"; if (n === 1) return "Tomorrow"; if (n === -1) return "Yesterday";
+    return n > 0 ? "in " + n + " days" : -n + " days ago";
   }
-  function colorFor(name) { return name === "You" ? "var(--accent)" : (colors[name] || PALETTE[0]); }
+  function prettyDay(day) { return new Date(day + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }); }
   function ago(iso) {
     const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-    if (s < 45) return "just now";
-    if (s < 3600) return Math.round(s / 60) + " min ago";
-    if (s < 86400) return Math.round(s / 3600) + " h ago";
+    if (s < 60) return "just now"; if (s < 3600) return Math.floor(s / 60) + "m ago";
+    if (s < 86400) return Math.floor(s / 3600) + "h ago";
     return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
   }
-  const today = () => new Date().toISOString().slice(0, 10);
-  const editing = () => document.activeElement && document.activeElement.classList.contains("cell");
+  function dayGroup(iso) {
+    const d = midnight(new Date(iso)), t = midnight(new Date());
+    const diff = Math.round((t - d) / 86400000);
+    if (diff === 0) return "Today"; if (diff === 1) return "Yesterday";
+    return d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" });
+  }
+  function assignColors(changes) {
+    colors = {};
+    [...new Set(changes.map((c) => c.by))].filter((n) => n !== "You").sort().forEach((n, i) => { colors[n] = PALETTE[i % PALETTE.length]; });
+  }
+  const colorFor = (name) => name === "You" ? "var(--you)" : (colors[name] || PALETTE[0]);
+  const avatar = (name) => el("span", { class: "dot", style: "background:" + colorFor(name) + ";box-shadow:0 0 9px -1px " + colorFor(name), "aria-hidden": "true" });
+  const isEditing = () => { const a = document.activeElement; return a && (a.classList.contains("cell") || a.classList.contains("pill")); };
+  const overlayOpen = () => document.querySelector(".scrim.open") !== null;
 
   // ---------- saving ----------
   async function save(method, path, body, message) {
@@ -170,142 +370,270 @@
       const top = state.changes[0];
       toast(message, top && top.id !== before && top.undoable ? top.id : null);
       return true;
-    } catch (e) {
-      toast(e.message, null, true);
-      await refresh(true);
-      return false;
-    }
+    } catch (e) { toast(e.message, null, true); await refresh(true); return false; }
   }
   async function undo(id) {
     try { await api("POST", "undo/" + id); await refresh(true); toast("Undone."); }
     catch (e) { toast(e.message, null, true); }
   }
 
-  // ---------- cells ----------
+  // ---------- editable cells ----------
   function cell(value, onSave, opts) {
     opts = opts || {};
-    const input = el("input", { class: "cell", type: opts.type || "text", placeholder: opts.placeholder || "",
-                                "aria-label": opts.label, maxlength: "500", list: opts.list });
+    const input = el("input", { class: "cell" + (opts.cls ? " " + opts.cls : ""), type: opts.type || "text", placeholder: opts.placeholder || "",
+      "aria-label": opts.label, maxlength: "500", list: opts.list });
     input.value = value || "";
     let original = input.value;
-    const commit = async () => {
-      const v = input.value.trim();
-      if (v === original) return;
-      if (opts.required && !v) { input.value = original; return; }
-      if (await onSave(v)) original = v; else input.value = original;
-    };
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") input.blur();
       if (e.key === "Escape") { input.value = original; input.blur(); }
     });
-    input.addEventListener("blur", commit);
+    input.addEventListener("blur", async () => {
+      const v = input.value.trim();
+      if (v === original) return;
+      if (opts.required && !v) { input.value = original; return; }
+      if (await onSave(v)) original = v; else input.value = original;
+    });
     return input;
   }
-  function statusCell(value, onSave, label) {
-    const s = el("select", { class: "cell s-" + value, "aria-label": label },
-      STATUSES.map((v) => el("option", { value: v, selected: v === value }, v)));
-    s.addEventListener("change", async () => { s.className = "cell s-" + s.value; if (!(await onSave(s.value))) s.value = value; });
+  function statusPill(value, onSave, label) {
+    const s = el("select", { class: "pill " + value, "aria-label": label }, STATUSES.map((v) => el("option", { value: v, selected: v === value }, v)));
+    s.addEventListener("change", async () => { s.className = "pill " + s.value; if (!(await onSave(s.value))) { s.value = value; s.className = "pill " + value; } });
     return s;
   }
-  const del = (label, onClick) => el("button", { class: "icon", "aria-label": label, title: label, onclick: onClick }, "×");
+  const delBtn = (label, onClick) => { const b = el("button", { class: "icon-btn", "aria-label": label, title: label, onclick: onClick }); b.append(icon("x")); return b; };
 
-  // ---------- tables ----------
-  function renderWork(rows) {
-    const t = document.getElementById("work");
-    const head = el("div", { class: "row head work-grid" }, el("div", {}, "Name"), el("div", {}, "Status"), el("div", {}, "Next step"), el("div"));
-    const body = rows.map((w) => el("div", { class: "row work-grid" },
-      cell(w.name, (v) => save("PATCH", "work/" + w.id, { name: v }, "Saved."), { label: "Work name", required: true }),
-      statusCell(w.status, (v) => save("PATCH", "work/" + w.id, { status: v }, "Saved."), "Status of " + w.name),
-      cell(w.next_step, (v) => save("PATCH", "work/" + w.id, { next_step: v }, "Saved."), { label: "Next step for " + w.name, placeholder: "No next step" }),
-      del("Delete " + w.name, () => save("DELETE", "work/" + w.id, null, "Removed " + w.name + "."))));
-    const name = cell("", () => true, { label: "New work name", placeholder: "+ New project, client or course" });
-    const step = cell("", () => true, { label: "New work next step", placeholder: "Next step" });
-    const add = async () => {
-      const n = name.value.trim(); if (!n) return;
-      if (await save("POST", "work", { name: n, next_step: step.value.trim() }, "Added " + n + ".")) { name.value = ""; step.value = ""; }
-    };
-    for (const i of [name, step]) i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); add(); } });
-    const adder = el("div", { class: "row adder work-grid" }, name, el("div"), step, el("div"));
-    t.replaceChildren(head, ...(rows.length ? body : [el("div", { class: "empty" }, "No work yet. Add your first project below, or tell any AI about it.")]), adder);
-    document.getElementById("n-work").textContent = rows.length || "";
-  }
-
-  function renderDates(rows, workNames) {
-    const t = document.getElementById("dates");
-    const list = el("datalist", { id: "work-names" }, workNames.map((n) => el("option", { value: n })));
-    const head = el("div", { class: "row head date-grid" }, el("div", {}, "Date"), el("div", {}, "What"), el("div", {}, "Work"), el("div"));
-    const body = rows.map((d) => el("div", { class: "row date-grid" + (d.day < today() ? " past" : "") },
-      cell(d.day, (v) => save("PATCH", "date/" + d.id, { day: v }, "Saved."), { type: "date", label: "Date of " + d.what, required: true }),
-      cell(d.what, (v) => save("PATCH", "date/" + d.id, { what: v }, "Saved."), { label: "What happens on " + d.day, required: true }),
-      cell(d.work, (v) => save("PATCH", "date/" + d.id, { work: v }, "Saved."), { label: "Work for " + d.what, placeholder: "No work", list: "work-names" }),
-      del("Delete " + d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + "."))));
-    const day = cell("", () => true, { type: "text", label: "New date", placeholder: "Date" });
-    day.addEventListener("focus", () => { day.type = "date"; });
-    day.addEventListener("blur", () => { if (!day.value) day.type = "text"; });
-    const what = cell("", () => true, { label: "New date, what happens", placeholder: "+ New date: launch, deadline, call" });
-    const work = cell("", () => true, { label: "New date, work", placeholder: "Work", list: "work-names" });
-    const add = async () => {
-      const w = what.value.trim(); if (!w || !day.value) { toast("Add a date and what happens.", null, true); return; }
-      if (await save("POST", "date", { day: day.value, what: w, work: work.value.trim() }, "Added " + w + ".")) { what.value = ""; work.value = ""; day.value = ""; }
-    };
-    for (const i of [what, work]) i.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); add(); } });
-    const adder = el("div", { class: "row adder date-grid" }, day, what, work, el("div"));
-    t.replaceChildren(list, head, ...(rows.length ? body : [el("div", { class: "empty" }, "No dates yet.")]), adder);
-    document.getElementById("n-dates").textContent = rows.length || "";
-  }
-
-  function renderAbout(rows) {
-    const t = document.getElementById("about");
-    const body = rows.map((n) => el("div", { class: "row note-grid" },
-      cell(n.note, (v) => save("PATCH", "note/" + n.id, { note: v }, "Saved."), { label: "Note", required: true }),
-      del("Delete note", () => save("DELETE", "note/" + n.id, null, "Note removed."))));
-    const note = cell("", () => true, { label: "New note", placeholder: "+ How you work, what you prefer, rules for your AIs" });
-    note.addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter") return; e.preventDefault();
-      const v = note.value.trim(); if (v && (await save("POST", "note", { note: v }, "Note added."))) note.value = "";
+  // ---------- add rows: one quiet "+ Add ..." row that expands into fields ----------
+  let adding = null;
+  function addRow(kind, label, grid, fields, submit) {
+    if (adding !== kind) {
+      const b = el("button", { class: "add-row", type: "button", onclick: () => {
+        adding = kind; render();
+        const first = document.querySelector(".tr.adder .cell");
+        if (first) { first.focus(); if (first.type === "date") { try { first.showPicker(); } catch (e) {} } }
+      } });
+      b.setAttribute("aria-label", label); b.title = label;
+      b.append(icon("plus"), el("span", { class: "lbl" }, label));
+      return b;
+    }
+    const close = () => { adding = null; render(); };
+    const cancel = el("button", { class: "icon-btn show", type: "button", "aria-label": "Cancel", title: "Cancel (Esc)", onclick: close });
+    cancel.append(icon("x"));
+    for (const f of fields) if (f.classList && f.classList.contains("cell")) f.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter") { e.preventDefault(); if (await submit()) close(); }
+      else if (e.key === "Escape") { e.stopPropagation(); close(); }
     });
-    t.replaceChildren(...(rows.length ? body : [el("div", { class: "empty" }, "Nothing yet. Add how you like to work.")]), el("div", { class: "row adder note-grid" }, note, el("div")));
-    document.getElementById("n-about").textContent = rows.length || "";
+    const rowEl = el("div", { class: "tr adder " + grid }, fields, cancel);
+    // Click away with nothing typed: go back to the single + row.
+    rowEl.addEventListener("focusout", () => setTimeout(() => {
+      if (adding !== kind || rowEl.contains(document.activeElement)) return;
+      const empty = fields.every((f) => !(f.classList && f.classList.contains("cell")) || !f.value.trim());
+      if (empty) { adding = null; render(); }
+    }, 0));
+    return rowEl;
   }
 
-  function renderLog(changes) {
-    assignColors(changes);
-    const fresh = seen ? changes.filter((c) => !seen.has(c.id)).map((c) => c.id) : [];
-    seen = new Set(changes.map((c) => c.id));
-    const items = changes.map((c) => el("li", { class: fresh.includes(c.id) ? "new" : "" },
-      el("span", { class: "who" }, el("i", { style: "background:" + colorFor(c.by), "aria-hidden": "true" }), c.by),
-      el("time", { class: "when", datetime: c.at, title: new Date(c.at).toLocaleString() }, ago(c.at)),
-      el("span", { class: "what" }, c.summary),
-      c.undoable ? el("button", { class: "undo", onclick: () => undo(c.id), "aria-label": "Undo: " + c.summary }, "Undo")
-                 : el("span", { class: "noundo", title: "Made before Undo existed" }, "Can't undo")));
-    document.getElementById("log").replaceChildren(...(items.length ? items : [el("li", {}, el("span", { class: "what" }, "No changes yet."))]));
+  // ---------- views ----------
+  function renderOverview() {
+    const active = state.work.filter((w) => w.status === "Active");
+    const upcoming = state.dates.filter((d) => daysUntil(d.day) >= 0);
+    const coming = el("div", { class: "card" },
+      el("div", { class: "card-head" }, el("h2", {}, "Coming up"), el("a", { href: "#dates" }, "All dates")),
+      upcoming.length ? upcoming.slice(0, 6).map((d) => el("div", { class: "list-row" },
+        el("div", { class: "grow" }, el("div", { class: "title" }, d.what), el("div", { class: "sub" }, prettyDay(d.day))),
+        el("span", { class: "when" + (daysUntil(d.day) <= 7 ? " soon" : "") }, whenLabel(d.day))))
+      : el("div", { class: "empty" }, el("b", {}, "Nothing coming up"), "Dates your AIs save will appear here."));
+    const progress = el("div", { class: "card" },
+      el("div", { class: "card-head" }, el("h2", {}, "In progress"), el("a", { href: "#work" }, "All projects")),
+      active.length ? active.map((w) => el("div", { class: "list-row" },
+        el("div", { class: "grow" }, el("div", { class: "title" }, w.name),
+          el("div", { class: "sub" }, w.next_step ? "Up next: " + w.next_step : "Nothing up next"))))
+      : el("div", { class: "empty" }, el("b", {}, "Nothing in progress"), "Active projects your AIs save will appear here."));
+    const recent = el("div", { class: "card" },
+      el("div", { class: "card-head" }, el("h2", {}, "Latest activity"), el("a", { href: "#activity" }, "All activity")),
+      state.changes.length ? state.changes.slice(0, 8).map((c) => el("div", { class: "list-row" }, avatar(c.by),
+        el("div", { class: "grow" }, el("div", { class: "title" }, c.summary), el("div", { class: "sub" }, c.by + "  ·  " + ago(c.at)))))
+      : el("div", { class: "empty" }, el("b", {}, "No activity yet"), "Changes from your AIs will show up here."));
+    return el("div", { class: "grid2" }, el("div", { class: "stack" }, coming, progress), recent);
   }
 
+  function renderWork() {
+    const head = el("div", { class: "tr head work-grid" }, el("div", {}, "Name"), el("div", {}, "Status"), el("div", {}, "Up next"), el("div"));
+    const rows = state.work.map((w) => el("div", { class: "tr work-grid", "data-key": "work-" + w.id },
+      cell(w.name, (v) => save("PATCH", "work/" + w.id, { name: v }, "Saved."), { label: "Project name", required: true }),
+      statusPill(w.status, (v) => save("PATCH", "work/" + w.id, { status: v }, "Status set to " + v + "."), "Status of " + w.name),
+      cell(w.next_step, (v) => save("PATCH", "work/" + w.id, { next_step: v }, "Saved."), { label: "Up next for " + w.name, placeholder: "Nothing up next" }),
+      delBtn("Delete " + w.name, () => save("DELETE", "work/" + w.id, null, "Removed " + w.name + "."))));
+    const name = cell("", () => true, { label: "New project name", placeholder: "Project, client or course" });
+    const step = cell("", () => true, { label: "Up next for the new project", placeholder: "Up next (optional)" });
+    const adder = addRow("work", "Add a project", "work-grid", [name, el("div"), step], async () => {
+      const n = name.value.trim(); if (!n) { toast("Give the project a name.", null, true); return false; }
+      return save("POST", "work", { name: n, next_step: step.value.trim() }, "Added " + n + "."); });
+    return el("div", { class: "table" }, head,
+      rows.length ? rows : el("div", { class: "empty" }, el("b", {}, "No projects yet"), "Add your first project below, or tell any AI about it."),
+      adder);
+  }
+
+  function dateRow(d) {
+    const n = daysUntil(d.day);
+    return el("div", { class: "tr date-grid" + (n < 0 ? " past" : ""), "data-key": "date-" + d.id },
+      cell(d.day, (v) => save("PATCH", "date/" + d.id, { day: v }, "Saved."), { type: "date", label: "Date of " + d.what, required: true }),
+      el("span", { class: "when" + (n < 0 ? " past" : n <= 7 ? " soon" : "") }, whenLabel(d.day)),
+      cell(d.what, (v) => save("PATCH", "date/" + d.id, { what: v }, "Saved."), { label: "Event on " + d.day, required: true }),
+      delBtn("Delete " + d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + ".")));
+  }
+  function renderDates() {
+    const head = el("div", { class: "tr head date-grid" }, el("div", {}, "Date"), el("div", {}, "When"), el("div", {}, "Event"), el("div"));
+    const up = state.dates.filter((d) => daysUntil(d.day) >= 0), past = state.dates.filter((d) => daysUntil(d.day) < 0).reverse();
+    const day = cell("", () => true, { type: "date", label: "New date" });
+    const what = cell("", () => true, { label: "New event", placeholder: "Launch, deadline or call" });
+    const adder = addRow("date", "Add a date", "date-grid", [day, el("div"), what], async () => {
+      const w = what.value.trim(); if (!w || !day.value) { toast("Pick a date and name the event.", null, true); return false; }
+      return save("POST", "date", { day: day.value, what: w }, "Added " + w + "."); });
+    return [el("div", { class: "table" }, head,
+      up.length ? up.map(dateRow) : el("div", { class: "empty" }, el("b", {}, "Nothing coming up"), "Add a date below, or tell any AI."),
+      adder),
+      past.length ? el("div", { class: "past-block" }, el("div", { class: "day" }, "Past"), el("div", { class: "table muted" }, past.map(dateRow))) : null];
+  }
+
+  function renderAbout() {
+    const rows = state.about.map((n) => el("div", { class: "tr note-grid", "data-key": "note-" + n.id },
+      cell(n.note, (v) => save("PATCH", "note/" + n.id, { note: v }, "Saved."), { label: "Note", required: true }),
+      delBtn("Delete note", () => save("DELETE", "note/" + n.id, null, "Note removed."))));
+    const note = cell("", () => true, { label: "New note", placeholder: "How you work, what you prefer, rules for your AIs" });
+    const adder = addRow("note", "Add a note", "note-grid", [note], async () => {
+      const v = note.value.trim(); if (!v) return false;
+      return save("POST", "note", { note: v }, "Note added."); });
+    return el("div", { class: "table" },
+      rows.length ? rows : el("div", { class: "empty" }, el("b", {}, "Nothing here yet"), "Add how you like to work. Every AI will read it."),
+      adder);
+  }
+
+  function renderActivity() {
+    const authors = [...new Set(state.changes.map((c) => c.by))];
+    const chips = el("div", { class: "chips", role: "group", "aria-label": "Filter by author" },
+      ["All", ...authors].map((a) => el("button", { class: "chip", "aria-pressed": String(agentFilter === a),
+        onclick: () => { agentFilter = a; render(); } }, a === "All" ? null : el("i", { style: "background:" + colorFor(a) }), a)));
+    const list = state.changes.filter((c) => agentFilter === "All" || c.by === agentFilter);
+    const fresh = seen ? list.filter((c) => !seen.has(c.id)).map((c) => c.id) : [];
+    const groups = [];
+    for (const c of list) {
+      const g = dayGroup(c.at);
+      if (!groups.length || groups[groups.length - 1].label !== g) groups.push({ label: g, items: [] });
+      groups[groups.length - 1].items.push(c);
+    }
+    if (!groups.length) return [chips, el("div", { class: "card" }, el("div", { class: "empty" }, el("b", {}, "No changes yet"), "Every change your AIs make will be listed and signed here."))];
+    return [chips, groups.map((g) => [el("div", { class: "day" }, g.label), el("div", { class: "card" }, g.items.map((c) =>
+      el("div", { class: "event" + (fresh.includes(c.id) ? " new" : "") }, avatar(c.by),
+        el("div", {}, el("div", { class: "who" }, c.by), el("div", { class: "what" }, c.summary)),
+        el("div", { class: "side-actions" },
+          el("time", { class: "t", datetime: c.at, title: new Date(c.at).toLocaleString() }, ago(c.at)),
+          c.undoable ? el("button", { class: "undo", onclick: () => undo(c.id), "aria-label": "Undo: " + c.summary }, "Undo")
+                     : el("span", { class: "noundo", title: "Made before Undo existed" }, "Can’t undo")))))])];
+  }
+
+  // ---------- shell ----------
+  const SUBTITLES = {
+    overview: "What your AIs know right now",
+    work: "What you’re working on, and what’s up next",
+    dates: "Launches, deadlines and calls, for every AI",
+    about: "How you work and the rules your AIs follow",
+    activity: "Every change, and which AI made it",
+  };
+  function renderNav() {
+    document.getElementById("nav").replaceChildren(...VIEWS.map((v) => el("a", { href: "#" + v.id, "aria-current": view === v.id ? "page" : null,
+      onclick: () => document.getElementById("side").classList.remove("open") },
+      icon(v.icon), v.label)));
+    const last = {};
+    if (state) for (const c of state.changes) if (c.by !== "You" && !last[c.by]) last[c.by] = c.at;
+    const names = Object.keys(last);
+    document.getElementById("agents").replaceChildren(...(names.length ? names.map((n) => el("div", { class: "agent" }, avatar(n),
+      el("div", { class: "meta" }, el("b", {}, n), el("span", {}, "active " + ago(last[n])))))
+      : [el("div", { class: "agent" }, el("div", { class: "meta" }, el("span", {}, state ? "No AI has written yet" : "Loading…")))]));
+  }
+  function skeleton() {
+    return el("div", { class: "card" }, [1, 2, 3, 4].map((i) => el("div", { class: "list-row" },
+      el("div", { class: "grow" }, el("div", { class: "skel", style: "width:" + (40 + i * 10) + "%" })))));
+  }
   function render() {
-    renderWork(state.work);
-    renderDates(state.dates, state.work.map((w) => w.name));
-    renderAbout(state.about);
-    renderLog(state.changes);
+    assignColors(state ? state.changes : []);
+    document.getElementById("title").textContent = VIEWS.find((v) => v.id === view).label;
+    document.getElementById("subtitle").textContent = SUBTITLES[view];
+    document.title = (view === "overview" ? "" : VIEWS.find((v) => v.id === view).label + " · ") + "Mindhall";
+    renderNav();
+    const target = document.getElementById("view");
+    if (!state) { target.replaceChildren(skeleton()); return; }
+    const out = { overview: renderOverview, work: renderWork, dates: renderDates, about: renderAbout, activity: renderActivity }[view]();
+    target.replaceChildren(...[out].flat(3).filter(Boolean));
+    seen = new Set(state.changes.map((c) => c.id));
+    if (highlight) {
+      const row = document.querySelector('[data-key="' + highlight + '"]');
+      if (row) { row.classList.add("flash"); row.scrollIntoView({ block: "center", behavior: "smooth" }); const f = row.querySelector(".cell"); if (f) f.focus(); }
+      highlight = null;
+    }
   }
+  function setView(id) { if (!VIEWS.some((v) => v.id === id)) id = "overview"; view = id; adding = null; render(); }
+  window.addEventListener("hashchange", () => setView(location.hash.slice(1)));
 
-  // ---------- live refresh ----------
-  function setStatus(ok) {
-    const s = document.getElementById("status");
-    s.classList.toggle("off", !ok);
-    s.querySelector("span").textContent = ok ? "Live" : "Offline, retrying";
-  }
+  // ---------- live data ----------
+  function setStatus(ok) { document.getElementById("banner").classList.toggle("show", !ok); }
   async function refresh(force) {
     try {
       const data = await api("GET", "mind");
-      lastOk = Date.now(); setStatus(true);
+      setStatus(true);
       const json = JSON.stringify(data);
-      if (!force && (json === lastJSON || editing())) return;
+      if (!force && (json === lastJSON || isEditing() || overlayOpen())) return;
       lastJSON = json; state = data; render();
     } catch (e) { setStatus(false); }
   }
+
+  // ---------- "New" panel ----------
+  const nw = { scrim: document.getElementById("new-scrim"), kind: "work" };
+  function field(label, input) { return el("div", { class: "field" }, el("label", { for: input.id }, label), input); }
+  function drawNew() {
+    document.getElementById("new-kind").replaceChildren(...[["work", "Project"], ["date", "Date"], ["note", "Note"]].map(([k, l]) =>
+      el("button", { type: "button", "aria-pressed": String(nw.kind === k), onclick: () => { nw.kind = k; drawNew(); } }, l)));
+    const f = document.getElementById("new-fields");
+    if (nw.kind === "work") f.replaceChildren(field("Name", el("input", { id: "nf-name", required: true, maxlength: "500", placeholder: "Mindhall" })),
+      el("div", { class: "row2" }, field("Status", el("select", { id: "nf-status" }, STATUSES.map((s) => el("option", { value: s }, s)))),
+        field("Up next", el("input", { id: "nf-step", maxlength: "500", placeholder: "Record the demo" }))));
+    if (nw.kind === "date") f.replaceChildren(el("div", { class: "row2" }, field("Date", el("input", { id: "nf-day", type: "date", required: true })),
+      field("Event", el("input", { id: "nf-what", required: true, maxlength: "500", placeholder: "Launch" }))));
+    if (nw.kind === "note") f.replaceChildren(field("Note", el("input", { id: "nf-note", required: true, maxlength: "500", placeholder: "Prefers short answers" })));
+    const first = f.querySelector("input"); if (first) first.focus();
+  }
+  function openNew(kind) { nw.kind = kind || (view === "dates" ? "date" : view === "about" ? "note" : "work"); nw.scrim.classList.add("open"); drawNew(); }
+  function closeNew() { nw.scrim.classList.remove("open"); }
+  document.getElementById("new-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const v = (id) => (document.getElementById(id) || {}).value || "";
+    let ok = false;
+    if (nw.kind === "work") ok = await save("POST", "work", { name: v("nf-name").trim(), status: v("nf-status"), next_step: v("nf-step").trim() }, "Added " + v("nf-name").trim() + ".");
+    if (nw.kind === "date") ok = await save("POST", "date", { day: v("nf-day"), what: v("nf-what").trim() }, "Added " + v("nf-what").trim() + ".");
+    if (nw.kind === "note") ok = await save("POST", "note", { note: v("nf-note").trim() }, "Note added.");
+    if (ok) closeNew();
+  });
+  document.getElementById("new-cancel").addEventListener("click", closeNew);
+  nw.scrim.addEventListener("mousedown", (e) => { if (e.target === nw.scrim) closeNew(); });
+
+  // ---------- keyboard ----------
+  document.addEventListener("keydown", (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
+    if (e.key === "Escape") { closeNew(); document.getElementById("side").classList.remove("open"); if (adding && !overlayOpen()) { adding = null; render(); } return; }
+    if (typing || overlayOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key.toLowerCase() === "n") { e.preventDefault(); openNew(); }
+  });
+  document.getElementById("open-new").prepend(icon("plus"));
+  document.querySelector(".ico-plus").remove();
+  document.getElementById("open-new").addEventListener("click", () => openNew());
+  document.getElementById("menu-btn").addEventListener("click", () => document.getElementById("side").classList.toggle("open"));
+
+  // ---------- start ----------
+  view = VIEWS.some((v) => v.id === location.hash.slice(1)) ? location.hash.slice(1) : "overview";
+  render();
   refresh(true);
   setInterval(() => refresh(false), 4000);
-  setInterval(() => { if (state) document.querySelectorAll(".log time").forEach((t) => { t.textContent = ago(t.getAttribute("datetime")); }); }, 30000);
+  setInterval(() => { if (state && !isEditing() && !overlayOpen()) render(); }, 60000);
   window.addEventListener("focus", () => refresh(false));
 })();
 </script>
