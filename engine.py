@@ -94,16 +94,15 @@ class Mind:
 
     @contextmanager
     def _conn(self):
-        # Checked on every connection, so a mind that was moved or deleted
-        # while Hermes or the MCP server is running is recreated cleanly.
+        # The folder and tables are checked on every connection, so a mind that
+        # was moved or deleted while Hermes or the MCP server is running is
+        # recreated cleanly, even if both processes recreate it at the same moment.
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        fresh = not self.path.exists()
         conn = sqlite3.connect(self.path, timeout=5)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")  # Hermes and the MCP server can share the file
         conn.execute("PRAGMA busy_timeout=5000")
-        if fresh:
-            conn.executescript(SCHEMA)
+        conn.executescript(SCHEMA)  # every statement is IF NOT EXISTS, so this is cheap and safe
         try:
             yield conn
             conn.commit()
@@ -126,6 +125,10 @@ class Mind:
         if not note:
             raise MindhallError("The note is empty.")
         with self._conn() as c:
+            # Telling two AIs the same thing should not save it twice.
+            same = c.execute("SELECT id, note FROM about WHERE note = ? COLLATE NOCASE", (note,)).fetchone()
+            if same is not None:
+                return dict(same)
             cur = c.execute("INSERT INTO about (note, updated_at) VALUES (?, ?)", (note, _now()))
             after = {"id": cur.lastrowid, "note": note}
             self._log(c, by, "About you", f"Added note: {note}", after=after)
@@ -185,12 +188,32 @@ class Mind:
 
     # ---------- Dates ----------
 
+    def _insert_date(self, c, what: str, day: str, work: str, by: str) -> dict:
+        cur = c.execute(
+            "INSERT INTO dates (day, what, work, updated_at) VALUES (?, ?, ?, ?)",
+            (day, what, work, _now()),
+        )
+        after = {"day": day, "what": what, "work": work}
+        self._log(c, by, "Dates", f"Added {what} on {day}", after={"id": cur.lastrowid, **after})
+        return {"id": cur.lastrowid, **after}
+
+    def add_date(self, what: str, day, by: str, work: str = "") -> dict:
+        """Always add a new date, even if one with the same name exists (the web table's Add)."""
+        day = _parse_day(day)
+        what = _text(what, "date label")
+        work = _text(work, "work name")
+        if not what:
+            raise MindhallError("Say what the date is for.")
+        with self._conn() as c:
+            return self._insert_date(c, what, day, work, by)
+
     def set_date(self, what: str, day, by: str, work: str = "", date_id: int | None = None) -> dict:
         """Add a date, or move an existing one.
 
-        An existing date is found by id, or else by the same name
-        ("Launch"), so "launch moved to Nov 20" updates the old entry
-        instead of creating a second, conflicting one.
+        An existing date is found by id, or else by the same name ("Launch")
+        within the same work, so "launch moved to Nov 20" updates the old
+        entry instead of creating a second, conflicting one, while Project A's
+        Launch and Project B's Launch stay separate dates.
         """
         day = _parse_day(day)
         what = _text(what, "date label")
@@ -203,23 +226,25 @@ class Mind:
                     raise MindhallError(f"There is no date with id {date_id}.")
             elif what:
                 rows = c.execute("SELECT * FROM dates WHERE what = ? COLLATE NOCASE", (what,)).fetchall()
+                if work:
+                    # Same work first; a same-named date with no work yet is taken to be this one.
+                    rows = ([r for r in rows if r["work"].lower() == work.lower()]
+                            or [r for r in rows if not r["work"]])
                 if len(rows) > 1:
-                    raise MindhallError(f"More than one date is called '{what}'. Pass its id to move it.")
+                    raise MindhallError(
+                        f"More than one date is called '{what}'. Pass its id, or the work it belongs to, to move it."
+                    )
                 row = rows[0] if rows else None
             if row is None:
                 if not what:
                     raise MindhallError("Say what the date is for.")
-                cur = c.execute(
-                    "INSERT INTO dates (day, what, work, updated_at) VALUES (?, ?, ?, ?)",
-                    (day, what, work, _now()),
-                )
-                after = {"day": day, "what": what, "work": work}
-                self._log(c, by, "Dates", f"Added {what} on {day}", after={"id": cur.lastrowid, **after})
-                return {"id": cur.lastrowid, **after}
+                return self._insert_date(c, what, day, work, by)
             before = {"day": row["day"], "what": row["what"], "work": row["work"]}
             # Matched by name: keep the stored name. Matched by id: a new name renames it.
             new_what = what if (date_id is not None and what) else row["what"]
-            after = {"day": day, "what": new_what, "work": work or row["work"]}
+            # Keep the stored spelling when the work only differs in capitals.
+            new_work = work if work and work.lower() != row["work"].lower() else row["work"]
+            after = {"day": day, "what": new_what, "work": new_work}
             if after == before:
                 return {"id": row["id"], **after}
             c.execute(
@@ -419,6 +444,14 @@ class Mind:
 
 # ---------- Text for AIs and people ----------
 
+def _local(at: str) -> datetime:
+    """A stored UTC timestamp in this machine's time zone (set TZ to change it)."""
+    try:
+        return datetime.fromisoformat(at).astimezone()
+    except ValueError:
+        return datetime.now().astimezone()
+
+
 def render_context(snap: dict, max_chars: int = 1800) -> str:
     """The short block injected into every AI turn. Done work is left out."""
     lines = ["Mindhall: the user's shared mind. If it disagrees with your own memory, Mindhall is right."]
@@ -439,7 +472,7 @@ def render_context(snap: dict, max_chars: int = 1800) -> str:
     if snap["recent_changes"]:
         lines.append("Latest changes:")
         for ch in snap["recent_changes"]:
-            lines.append(f"- {ch['at'][:10]} {ch['by']}: {ch['summary']}")
+            lines.append(f"- {_local(ch['at']):%Y-%m-%d} {ch['by']}: {ch['summary']}")
     text = "\n".join(lines)
     if len(text) > max_chars:
         text = text[: max_chars - 40].rstrip() + "\n- (more in Mindhall, use mindhall_read)"
@@ -462,7 +495,7 @@ def render_summary(snap: dict) -> str:
         for d in snap["upcoming"]
     ] or ["  No dates in this window."]
     out += ["", "Latest changes"]
-    out += [f"  {c['at'][:16].replace('T', ' ')}  {c['by']}: {c['summary']}" for c in snap["recent_changes"]] or [
+    out += [f"  {_local(c['at']):%Y-%m-%d %H:%M}  {c['by']}: {c['summary']}" for c in snap["recent_changes"]] or [
         "  No changes yet."
     ]
     return "\n".join(out)

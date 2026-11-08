@@ -175,3 +175,57 @@ def test_everything_marks_which_changes_can_be_undone(mind):
     state = mind.everything()
     assert state["changes"][0]["undoable"] is True
     assert set(state) == {"about", "work", "dates", "changes"}
+
+
+def test_same_named_dates_in_different_work_stay_separate(mind):
+    mind.set_date("Launch", "2026-11-20", "Claude", work="Project A")
+    mind.set_date("Launch", "2026-12-05", "ChatGPT", work="Project B")
+    dates = {d["work"]: d["day"] for d in mind.all_dates(today=TODAY)}
+    assert dates == {"Project A": "2026-11-20", "Project B": "2026-12-05"}
+    mind.set_date("launch", "2026-11-22", "Hermes", work="project a")  # moves A's only
+    dates = {d["work"]: d["day"] for d in mind.all_dates(today=TODAY)}
+    assert dates == {"Project A": "2026-11-22", "Project B": "2026-12-05"}
+
+
+def test_same_named_date_without_work_is_refused_when_ambiguous(mind):
+    mind.set_date("Launch", "2026-11-20", "Claude", work="Project A")
+    mind.set_date("Launch", "2026-12-05", "Claude", work="Project B")
+    with pytest.raises(engine.MindhallError):
+        mind.set_date("Launch", "2026-12-10", "Claude")
+    assert len(mind.all_dates(today=TODAY)) == 2
+
+
+def test_date_without_work_is_adopted_by_its_work(mind):
+    mind.set_date("Launch", "2026-11-20", "Claude")
+    mind.set_date("Launch", "2026-11-22", "ChatGPT", work="Mindhall")
+    dates = mind.all_dates(today=TODAY)
+    assert len(dates) == 1 and dates[0]["work"] == "Mindhall" and dates[0]["day"] == "2026-11-22"
+
+
+def test_add_date_always_adds(mind):
+    mind.set_date("Call", "2026-11-10", "Claude")
+    mind.add_date("Call", "2026-11-17", "You")
+    assert [d["day"] for d in mind.all_dates(today=TODAY)] == ["2026-11-10", "2026-11-17"]
+
+
+def test_same_note_is_saved_once(mind):
+    first = mind.add_note("Prefers short answers", "Claude")
+    again = mind.add_note("prefers short answers", "ChatGPT")
+    assert again["id"] == first["id"]
+    assert len(mind.snapshot(today=TODAY)["about"]) == 1 and len(mind.recent_changes()) == 1
+
+
+def test_existing_empty_file_gets_its_tables(tmp_path):
+    path = tmp_path / "mind.db"
+    path.touch()  # e.g. created by another process a moment earlier
+    assert engine.Mind(path).is_empty()
+
+
+def test_change_times_are_shown_in_local_time(mind, monkeypatch):
+    mind.add_note("Hello", "Claude")
+    snap = mind.snapshot(today=TODAY)
+    snap["recent_changes"][0]["at"] = "2026-11-08T20:00:00+00:00"
+    from datetime import datetime
+    local = datetime.fromisoformat("2026-11-08T20:00:00+00:00").astimezone()
+    assert local.strftime("%Y-%m-%d %H:%M") in engine.render_summary(snap)
+    assert local.strftime("%Y-%m-%d") + " Claude" in engine.render_context(snap)

@@ -56,7 +56,9 @@ APP_NAMES = (
 )
 
 mind = engine.Mind()
-mcp = MCPServer(name="Mindhall", instructions=INSTRUCTIONS)
+# WARNING keeps the per-request access log off: every request path contains the
+# secret, and the web page polls every few seconds, so INFO would write it to the logs.
+mcp = MCPServer(name="Mindhall", instructions=INSTRUCTIONS, log_level="WARNING")
 
 
 def app_name(ctx: Context | None) -> str:
@@ -116,7 +118,7 @@ def mindhall_update_work(name: str, ctx: Context, status: str | None = None, nex
 
 @mcp.tool(title="Add or move a date", annotations=ToolAnnotations(title='Add or move a date', readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def mindhall_set_date(day: str, ctx: Context, what: str = "", work: str = "", id: int | None = None) -> dict:
-    """Add a date, or move an existing one. A date with the same name is moved, not duplicated.
+    """Add a date, or move an existing one. A date with the same name (in the same work) is moved, not duplicated.
 
     day: the date as YYYY-MM-DD. what: what happens that day, e.g. "Launch".
     work: optional, the work it belongs to. id: optional, the id of the date to change.
@@ -196,7 +198,7 @@ def add_web_routes(secret: str) -> None:
         if kind == "work":
             return mind.set_work(data.get("name"), WEB_NAME, data.get("status"), data.get("next_step"))
         if kind == "date":
-            return mind.set_date(data.get("what"), data.get("day"), WEB_NAME, data.get("work") or "")
+            return mind.add_date(data.get("what"), data.get("day"), WEB_NAME, data.get("work") or "")
         raise engine.MindhallError("Unknown table.")
 
     async def change(request):

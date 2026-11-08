@@ -129,7 +129,7 @@ def register(ctx):
 
     tool(
         "mindhall_set_date",
-        "Add a date, or move an existing one. A date with the same name is moved, not duplicated.",
+        "Add a date, or move an existing one. A date with the same name (in the same work) is moved, not duplicated.",
         {
             "what": {"type": "string", "description": "What happens on that day, e.g. 'Launch'."},
             "day": {"type": "string", "description": "The date as YYYY-MM-DD."},
