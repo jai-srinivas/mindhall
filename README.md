@@ -26,7 +26,7 @@ Your mind has four rooms:
 
 - **Every Hermes turn starts with a short Mindhall block**: about you, active work, the next two weeks of dates and the latest changes. If Mindhall and the agent's own memory disagree, Mindhall wins.
 - **Agents write back** with five tools: `mindhall_read`, `mindhall_update_work`, `mindhall_set_date`, `mindhall_add_note` and `mindhall_remove`.
-- **Moving a date updates it.** "Launch moved to Nov 22" changes the existing Launch date instead of adding a second, conflicting one.
+- **Moving a date updates it.** "Launch moved to Nov 22" changes the existing Launch date instead of adding a second, conflicting one. Dates are matched within their project, so two projects can each have their own Launch.
 - **Other AI apps share the same mind** through the included MCP server: ChatGPT, Claude, Cursor and anything else that speaks MCP.
 - **It never breaks your agent.** If the mind can't be read, the turn goes ahead without it.
 
@@ -76,7 +76,7 @@ Set these in a profile's `.env` (`~/.hermes/.env` for the default profile, `~/.h
 | Variable | What it does | Default |
 | --- | --- | --- |
 | `MINDHALL_AGENT_NAME` | The name this profile signs changes with | `Hermes <Profile>`, or `Hermes` for the default profile |
-| `MINDHALL_DB` | Where this profile's mind is stored | `~/.mindhall/mindhall.db`, shared by every profile |
+| `MINDHALL_DB` | Where this profile's mind is stored. If you change it, set the same value for the MCP server too | `~/.mindhall/mindhall.db`, shared by every profile |
 
 Every profile shares one mind by default, which is the point. Give a profile its own `MINDHALL_DB` to keep it separate, for example a demo or a personal agent.
 
@@ -122,7 +122,6 @@ The tests cover the engine and settings, and need no Hermes install.
 - Sign-in for the MCP server, so the address needs no secret
 - A hosted version with nothing to set up
 - Memory provider mode, for people who want Mindhall as their main memory
-- One-click undo from the Change Log
 
 ## License
 
