@@ -379,8 +379,31 @@ class Mind:
                       after={"id": row_id, **restored} if restored else None)
             return {"undone": change_id}
 
+    def _last_changes(self, c) -> dict:
+        """Who last changed each item, and when, from the Change Log: {(room, id): (by, at)}.
+        Read only from the log, so it needs no new column and works with minds written by older
+        versions. Items whose changes predate ids in the log have no entry."""
+        rooms = tuple(self._UNDO_TABLES)
+        marks = ", ".join("?" * len(rooms))
+        try:
+            # SQLite takes the bare columns (by, at) from the row holding MAX(id).
+            rows = c.execute(
+                "SELECT room, COALESCE(json_extract(after, '$.id'), json_extract(before, '$.id')) AS item, "
+                f"by, at, MAX(id) FROM changes WHERE room IN ({marks}) GROUP BY room, item", rooms).fetchall()
+            return {(r["room"], r["item"]): (r["by"], r["at"]) for r in rows if r["item"] is not None}
+        except sqlite3.OperationalError:  # an SQLite built without JSON functions
+            last = {}
+            for r in c.execute(f"SELECT room, by, at, before, after FROM changes WHERE room IN ({marks}) "
+                               "ORDER BY id", rooms):
+                item = (json.loads(r["after"]) if r["after"] else None) or \
+                       (json.loads(r["before"]) if r["before"] else None) or {}
+                if item.get("id") is not None:
+                    last[(r["room"], item["id"])] = (r["by"], r["at"])
+            return last
+
     def everything(self, changes: int = 100) -> dict:
-        """The whole mind with ids, for the web tables."""
+        """The whole mind with ids, for the web tables. Each item also says who last changed it and
+        when (`by`, `changed_at`; None when the log doesn't say)."""
         with self._conn() as c:
             about = [dict(r) for r in c.execute("SELECT id, note FROM about ORDER BY id")]
             work = [dict(r) for r in c.execute(
@@ -388,6 +411,10 @@ class Mind:
                 "CASE status WHEN 'Active' THEN 0 WHEN 'Parked' THEN 1 ELSE 2 END, name"
             )]
             dates = [dict(r) for r in c.execute("SELECT id, day, what, work FROM dates ORDER BY day")]
+            last = self._last_changes(c)
+            for room, items in (("About you", about), ("Work", work), ("Dates", dates)):
+                for item in items:
+                    item["by"], item["changed_at"] = last.get((room, item["id"]), (None, None))
             log = []
             for r in c.execute("SELECT * FROM changes ORDER BY id DESC LIMIT ?", (changes,)):
                 b = json.loads(r["before"]) if r["before"] else {}

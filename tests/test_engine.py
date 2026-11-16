@@ -145,7 +145,7 @@ def test_undo_work_updates_renames_and_removals(mind):
     work_id = mind.everything()["work"][0]["id"]
     mind.edit_work(work_id, "You", name="Mindhall v1", status="Parked")
     mind.undo(latest(mind)["id"], "You")
-    assert mind.everything()["work"][0] | {"id": 0} == {"id": 0, "name": "Mindhall", "status": "Active", "next_step": "Ship"}
+    assert {k: mind.everything()["work"][0][k] for k in ("name", "status", "next_step")} == {"name": "Mindhall", "status": "Active", "next_step": "Ship"}
     mind.remove_work(work_id, "You")
     mind.undo(latest(mind)["id"], "You")
     assert mind.everything()["work"][0]["name"] == "Mindhall"
@@ -229,3 +229,67 @@ def test_change_times_are_shown_in_local_time(mind, monkeypatch):
     local = datetime.fromisoformat("2026-11-08T20:00:00+00:00").astimezone()
     assert local.strftime("%Y-%m-%d %H:%M") in engine.render_summary(snap)
     assert local.strftime("%Y-%m-%d") + " Claude" in engine.render_context(snap)
+
+
+def test_everything_says_who_last_changed_each_item(mind):
+    mind.add_note("Prefers short answers", "ChatGPT")
+    morning = mind.add_note("Works mornings", "Claude")
+    mind.edit_note(morning["id"], "Works best in the mornings", "You")
+    mind.set_work("Mindhall", "Claude", "Active", "Launch")
+    mind.set_work("Newsletter", "Claude")
+    mind.set_work("Mindhall", "ChatGPT", next_step="Ship billing")
+    mind.set_date("Launch", "2030-01-15", "Grok")
+    e = mind.everything()
+    assert [(n["note"], n["by"]) for n in e["about"]] == [("Prefers short answers", "ChatGPT"),
+                                                          ("Works best in the mornings", "You")]
+    assert {w["name"]: w["by"] for w in e["work"]} == {"Mindhall": "ChatGPT", "Newsletter": "Claude"}
+    assert [(d["what"], d["by"]) for d in e["dates"]] == [("Launch", "Grok")]
+    assert all(item["changed_at"] and item["changed_at"].endswith("+00:00") for item in e["about"] + e["work"] + e["dates"])
+
+
+def test_an_undo_counts_as_the_last_change(mind):
+    mind.set_work("Mindhall", "Claude", "Active", "Launch")
+    mind.set_work("Mindhall", "ChatGPT", next_step="Something wrong")
+    latest = mind.recent_changes(1)[0]["id"]
+    mind.undo(latest, "You")
+    work = mind.everything()["work"][0]
+    assert (work["next_step"], work["by"]) == ("Launch", "You")
+
+
+def test_a_reused_id_names_the_new_items_author(mind):
+    first = mind.add_note("Old note", "ChatGPT")
+    mind.remove_note(first["id"], "You")
+    again = mind.add_note("New note", "Claude")
+    assert again["id"] == first["id"]                   # SQLite reuses the freed id
+    assert [(n["note"], n["by"]) for n in mind.everything()["about"]] == [("New note", "Claude")]
+
+
+def test_items_whose_changes_predate_ids_have_no_author(mind):
+    with mind._conn() as c:                             # as written by a version from before Undo
+        c.execute("INSERT INTO about (note, updated_at) VALUES ('Old fact', '2026-01-01T00:00:00+00:00')")
+        c.execute("INSERT INTO changes (at, by, room, summary, before, after) VALUES "
+                  "('2026-01-01T00:00:00+00:00', 'Hermes', 'About you', 'Added note: Old fact', NULL, '{\"note\": \"Old fact\"}')")
+    note = mind.everything()["about"][0]
+    assert (note["note"], note["by"], note["changed_at"]) == ("Old fact", None, None)
+
+
+def test_authors_are_found_without_sqlite_json_functions(mind):
+    import sqlite3
+    mind.add_note("A", "ChatGPT")
+    b = mind.add_note("B", "Claude")
+    mind.edit_note(b["id"], "B2", "You")
+    mind.set_date("Launch", "2030-01-15", "Grok")
+
+    class NoJSON:
+        def __init__(self, conn):
+            self.conn = conn
+
+        def execute(self, sql, *args):
+            if "json_extract" in sql:
+                raise sqlite3.OperationalError("no such function: json_extract")
+            return self.conn.execute(sql, *args)
+
+    with mind._conn() as c:
+        with_json = mind._last_changes(c)
+        without = mind._last_changes(NoJSON(c))
+    assert without == with_json and len(without) == 3

@@ -135,9 +135,12 @@
   .tr.flash { animation: flash 2s ease-out; }
   @keyframes flash { from { background: rgba(35,131,226,.14); } to { background: transparent; } }
   .tr.past .cell { color: var(--faint); }
-  .work-grid { grid-template-columns: minmax(160px,1.2fr) 128px minmax(180px,1.7fr) 40px; }
-  .date-grid { grid-template-columns: 164px 112px minmax(0,1fr) 40px; }
-  .note-grid { grid-template-columns: minmax(0,1fr) 40px; }
+  .work-grid { grid-template-columns: minmax(160px,1.2fr) 128px minmax(180px,1.7fr) 112px 40px; }
+  .date-grid { grid-template-columns: 164px 112px minmax(0,1fr) 112px 40px; }
+  .note-grid { grid-template-columns: minmax(0,1fr) 112px 40px; }
+  .by { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 0 8px; color: var(--faint); font-size: 13px; }
+  .by .by-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .by .dot { flex: none; }
   .cell { width: 100%; min-height: 40px; padding: 0 8px; border: 0; background-color: transparent; outline: none; text-overflow: ellipsis; border-radius: 4px; }
   .cell::placeholder { color: var(--faint); }
   .cell:focus { background-color: var(--panel); box-shadow: inset 0 0 0 2px rgba(35,131,226,.45); }
@@ -232,8 +235,22 @@
     .top h1 { font-size: 26px; }
     .search { min-width: 0; }
     .search .label, .search .kbd { display: none; }
-    .work-grid { grid-template-columns: 1fr 112px 36px; } .work-grid > :nth-child(3) { grid-column: 1 / 3; }
-    .date-grid { grid-template-columns: 150px 1fr 36px; } .date-grid > :nth-child(2) { display: none; }
+    /* Tables as two-line rows: the main line, then the details (up next, when, who) beneath. */
+    .tr.head { display: none; }
+    .work-grid { grid-template-columns: minmax(0,1fr) auto 36px; grid-template-areas: "a b x" "c d x"; }
+    .date-grid { grid-template-columns: 150px minmax(0,1fr) 36px; grid-template-areas: "a c x" "b d x"; }
+    .note-grid { grid-template-columns: minmax(0,1fr) 36px; grid-template-areas: "a x" "d x"; }
+    .tr > :nth-child(1) { grid-area: a; }
+    .work-grid > :nth-child(2), .date-grid > :nth-child(2) { grid-area: b; }
+    .work-grid > :nth-child(3), .date-grid > :nth-child(3) { grid-area: c; }
+    .tr > .by { grid-area: d; }
+    .tr > :last-child { grid-area: x; }
+    .work-grid > :nth-child(3) { min-height: 30px; padding-bottom: 6px; }
+    .date-grid > .when { margin: 0 8px 8px; }
+    .by { padding: 0 8px 8px; font-size: 12.5px; }
+    .work-grid > .by { padding-left: 14px; }      /* under the status word */
+    .note-grid > .by { margin-top: -6px; }
+    .tr > .by:empty { display: none; }
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
@@ -354,10 +371,15 @@
   }
   function assignColors(changes) {
     colors = {};
-    [...new Set(changes.map((c) => c.by))].filter((n) => n !== "You").sort().forEach((n, i) => { colors[n] = PALETTE[i % PALETTE.length]; });
+    const items = state ? [...state.about, ...state.work, ...state.dates] : [];
+    [...new Set([...changes, ...items].map((c) => c.by).filter(Boolean))].filter((n) => n !== "You").sort().forEach((n, i) => { colors[n] = PALETTE[i % PALETTE.length]; });
   }
   const colorFor = (name) => name === "You" ? "var(--you)" : (colors[name] || PALETTE[0]);
   const avatar = (name) => el("span", { class: "dot", style: "background:" + colorFor(name) + ";box-shadow:0 0 9px -1px " + colorFor(name), "aria-hidden": "true" });
+  const byCell = (item) => item.by
+    ? el("div", { class: "by", title: "Last changed by " + item.by + (item.changed_at ? " · " + new Date(item.changed_at).toLocaleString() : "") },
+        avatar(item.by), el("span", { class: "by-name" }, item.by))
+    : el("div", { class: "by" });
   const isEditing = () => { const a = document.activeElement; return a && (a.classList.contains("cell") || a.classList.contains("pill")); };
   const overlayOpen = () => document.querySelector(".scrim.open") !== null;
 
@@ -458,15 +480,16 @@
   }
 
   function renderWork() {
-    const head = el("div", { class: "tr head work-grid" }, el("div", {}, "Name"), el("div", {}, "Status"), el("div", {}, "Up next"), el("div"));
+    const head = el("div", { class: "tr head work-grid" }, el("div", {}, "Name"), el("div", {}, "Status"), el("div", {}, "Up next"), el("div", { class: "by-head" }, "By"), el("div"));
     const rows = state.work.map((w) => el("div", { class: "tr work-grid", "data-key": "work-" + w.id },
       cell(w.name, (v) => save("PATCH", "work/" + w.id, { name: v }, "Saved."), { label: "Project name", required: true }),
       statusPill(w.status, (v) => save("PATCH", "work/" + w.id, { status: v }, "Status set to " + v + "."), "Status of " + w.name),
       cell(w.next_step, (v) => save("PATCH", "work/" + w.id, { next_step: v }, "Saved."), { label: "Up next for " + w.name, placeholder: "Nothing up next" }),
+      byCell(w),
       delBtn("Delete " + w.name, () => save("DELETE", "work/" + w.id, null, "Removed " + w.name + "."))));
     const name = cell("", () => true, { label: "New project name", placeholder: "Project, client or course" });
     const step = cell("", () => true, { label: "Up next for the new project", placeholder: "Up next (optional)" });
-    const adder = addRow("work", "Add a project", "work-grid", [name, el("div"), step], async () => {
+    const adder = addRow("work", "Add a project", "work-grid", [name, el("div"), step, el("div", { class: "by" })], async () => {
       const n = name.value.trim(); if (!n) { toast("Give the project a name.", null, true); return false; }
       return save("POST", "work", { name: n, next_step: step.value.trim() }, "Added " + n + "."); });
     return el("div", { class: "table" }, head,
@@ -480,14 +503,15 @@
       cell(d.day, (v) => save("PATCH", "date/" + d.id, { day: v }, "Saved."), { type: "date", label: "Date of " + d.what, required: true }),
       el("span", { class: "when" + (n < 0 ? " past" : n <= 7 ? " soon" : "") }, whenLabel(d.day)),
       cell(d.what, (v) => save("PATCH", "date/" + d.id, { what: v }, "Saved."), { label: "Event on " + d.day, required: true }),
+      byCell(d),
       delBtn("Delete " + d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + ".")));
   }
   function renderDates() {
-    const head = el("div", { class: "tr head date-grid" }, el("div", {}, "Date"), el("div", {}, "When"), el("div", {}, "Event"), el("div"));
+    const head = el("div", { class: "tr head date-grid" }, el("div", {}, "Date"), el("div", {}, "When"), el("div", {}, "Event"), el("div", {}, "By"), el("div"));
     const up = state.dates.filter((d) => daysUntil(d.day) >= 0), past = state.dates.filter((d) => daysUntil(d.day) < 0).reverse();
     const day = cell("", () => true, { type: "date", label: "New date" });
     const what = cell("", () => true, { label: "New event", placeholder: "Launch, deadline or call" });
-    const adder = addRow("date", "Add a date", "date-grid", [day, el("div"), what], async () => {
+    const adder = addRow("date", "Add a date", "date-grid", [day, el("div"), what, el("div", { class: "by" })], async () => {
       const w = what.value.trim(); if (!w || !day.value) { toast("Pick a date and name the event.", null, true); return false; }
       return save("POST", "date", { day: day.value, what: w }, "Added " + w + "."); });
     return [el("div", { class: "table" }, head,
@@ -499,9 +523,10 @@
   function renderAbout() {
     const rows = state.about.map((n) => el("div", { class: "tr note-grid", "data-key": "note-" + n.id },
       cell(n.note, (v) => save("PATCH", "note/" + n.id, { note: v }, "Saved."), { label: "Note", required: true }),
+      byCell(n),
       delBtn("Delete note", () => save("DELETE", "note/" + n.id, null, "Note removed."))));
     const note = cell("", () => true, { label: "New note", placeholder: "How you work, what you prefer, rules for your AIs" });
-    const adder = addRow("note", "Add a note", "note-grid", [note], async () => {
+    const adder = addRow("note", "Add a note", "note-grid", [note, el("div", { class: "by" })], async () => {
       const v = note.value.trim(); if (!v) return false;
       return save("POST", "note", { note: v }, "Note added."); });
     return el("div", { class: "table" },
