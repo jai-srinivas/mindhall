@@ -104,6 +104,11 @@
   .btn:hover { background: var(--hover); }
   .btn.primary { border-color: transparent; background: var(--accent); color: var(--accent-ink); }
   .btn.primary:hover { filter: brightness(1.06); background: var(--accent); }
+  .btn.danger { border-color: transparent; background: #d44c47; color: #ffffff; }
+  .btn.danger:hover { filter: brightness(1.06); background: #d44c47; }
+  .dialog.small { width: min(420px, 100%); }
+  .confirm-title { overflow-wrap: anywhere; }
+  .confirm-text { margin: 0; color: var(--muted); }
   .btn svg { width: 15px; height: 15px; }
   .menu-btn { display: none; }
 
@@ -287,6 +292,14 @@
   </form>
 </div></div>
 
+<div class="scrim" id="confirm-scrim"><div class="dialog small" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+  <div class="form">
+    <h2 class="confirm-title" id="confirm-title">Delete?</h2>
+    <p class="confirm-text" id="confirm-text">It’s removed for all your AIs. You can still undo it later from Activity.</p>
+    <div class="form-actions"><button type="button" class="btn" id="confirm-no">Cancel</button><button type="button" class="btn danger" id="confirm-yes">Delete</button></div>
+  </div>
+</div></div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -423,7 +436,7 @@
     s.addEventListener("change", async () => { s.className = "pill " + s.value; if (!(await onSave(s.value))) { s.value = value; s.className = "pill " + value; } });
     return s;
   }
-  const delBtn = (label, onClick) => { const b = el("button", { class: "icon-btn", "aria-label": label, title: label, onclick: onClick }); b.append(icon("x")); return b; };
+  const delBtn = (label, name, action) => { const b = el("button", { class: "icon-btn", "aria-label": label, title: label, onclick: () => askDelete(name, action) }); b.append(icon("x")); return b; };
 
   // ---------- add rows: one quiet "+ Add ..." row that expands into fields ----------
   let adding = null;
@@ -486,7 +499,7 @@
       statusPill(w.status, (v) => save("PATCH", "work/" + w.id, { status: v }, "Status set to " + v + "."), "Status of " + w.name),
       cell(w.next_step, (v) => save("PATCH", "work/" + w.id, { next_step: v }, "Saved."), { label: "Up next for " + w.name, placeholder: "Nothing up next" }),
       byCell(w),
-      delBtn("Delete " + w.name, () => save("DELETE", "work/" + w.id, null, "Removed " + w.name + "."))));
+      delBtn("Delete " + w.name, w.name, () => save("DELETE", "work/" + w.id, null, "Removed " + w.name + "."))));
     const name = cell("", () => true, { label: "New project name", placeholder: "Project, client or course" });
     const step = cell("", () => true, { label: "Up next for the new project", placeholder: "Up next (optional)" });
     const adder = addRow("work", "Add a project", "work-grid", [name, el("div"), step, el("div", { class: "by" })], async () => {
@@ -504,7 +517,7 @@
       el("span", { class: "when" + (n < 0 ? " past" : n <= 7 ? " soon" : "") }, whenLabel(d.day)),
       cell(d.what, (v) => save("PATCH", "date/" + d.id, { what: v }, "Saved."), { label: "Event on " + d.day, required: true }),
       byCell(d),
-      delBtn("Delete " + d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + ".")));
+      delBtn("Delete " + d.what, d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + ".")));
   }
   function renderDates() {
     const head = el("div", { class: "tr head date-grid" }, el("div", {}, "Date"), el("div", {}, "When"), el("div", {}, "Event"), el("div", {}, "By"), el("div"));
@@ -524,7 +537,7 @@
     const rows = state.about.map((n) => el("div", { class: "tr note-grid", "data-key": "note-" + n.id },
       cell(n.note, (v) => save("PATCH", "note/" + n.id, { note: v }, "Saved."), { label: "Note", required: true }),
       byCell(n),
-      delBtn("Delete note", () => save("DELETE", "note/" + n.id, null, "Note removed."))));
+      delBtn("Delete note", n.note, () => save("DELETE", "note/" + n.id, null, "Note removed."))));
     const note = cell("", () => true, { label: "New note", placeholder: "How you work, what you prefer, rules for your AIs" });
     const adder = addRow("note", "Add a note", "note-grid", [note, el("div", { class: "by" })], async () => {
       const v = note.value.trim(); if (!v) return false;
@@ -641,10 +654,29 @@
   document.getElementById("new-cancel").addEventListener("click", closeNew);
   nw.scrim.addEventListener("mousedown", (e) => { if (e.target === nw.scrim) closeNew(); });
 
+  // ---------- confirm before deleting ----------
+  const cf = { scrim: document.getElementById("confirm-scrim"), action: null, back: null };
+  function askDelete(name, action) {
+    const text = String(name || "").trim();
+    const shown = text.length > 80 ? text.slice(0, 79) + "…" : text;
+    document.getElementById("confirm-title").textContent = shown ? "Delete “" + shown + "”?" : "Delete this?";
+    cf.action = action; cf.back = document.activeElement;
+    cf.scrim.classList.add("open");
+    document.getElementById("confirm-no").focus();   // the safe choice has the focus
+  }
+  function closeConfirm() {
+    if (!cf.scrim.classList.contains("open")) return;
+    cf.scrim.classList.remove("open"); cf.action = null;
+    if (cf.back && document.contains(cf.back)) cf.back.focus();
+  }
+  document.getElementById("confirm-yes").addEventListener("click", async () => { const action = cf.action; closeConfirm(); if (action) await action(); });
+  document.getElementById("confirm-no").addEventListener("click", closeConfirm);
+  cf.scrim.addEventListener("mousedown", (e) => { if (e.target === cf.scrim) closeConfirm(); });
+
   // ---------- keyboard ----------
   document.addEventListener("keydown", (e) => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
-    if (e.key === "Escape") { closeNew(); document.getElementById("side").classList.remove("open"); if (adding && !overlayOpen()) { adding = null; render(); } return; }
+    if (e.key === "Escape") { closeConfirm(); closeNew(); document.getElementById("side").classList.remove("open"); if (adding && !overlayOpen()) { adding = null; render(); } return; }
     if (typing || overlayOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key.toLowerCase() === "n") { e.preventDefault(); openNew(); }
   });
