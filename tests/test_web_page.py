@@ -1,0 +1,101 @@
+"""The dashboard page (web/index.html) keeps its security rules and the markers that servers embedding it rely on."""
+import json
+import re
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+PAGE = (Path(__file__).resolve().parent.parent / "web" / "index.html").read_text(encoding="utf-8")
+
+
+def test_embed_markers_appear_exactly_once():
+    # Servers that embed this page insert their own links and scripts at exactly these spots,
+    # so each must appear exactly once.
+    for marker in ('<div class="foot">', '<script>\n(() => {\n  "use strict";', "</head>"):
+        assert PAGE.count(marker) == 1, marker
+
+
+def test_loads_nothing_from_other_sites():
+    assert not re.search(r"""\b(?:src|href|action)\s*=\s*["']?\s*(?:https?:)?//""", PAGE, re.I)
+    assert not re.search(r"""url\(\s*["']?\s*(?:https?:)?//""", PAGE, re.I)
+    assert not re.search(r"""\bfetch\(\s*["'`](?:https?:)?//""", PAGE)
+    assert "@import" not in PAGE
+
+
+def test_font_is_embedded_not_fetched():
+    assert "src: url(data:font/woff2;base64," in PAGE
+    assert "fonts.googleapis" not in PAGE and "fonts.gstatic" not in PAGE
+
+
+def test_sends_no_referrer():
+    assert '<meta name="referrer" content="no-referrer">' in PAGE
+
+
+def test_data_is_inserted_as_text_never_as_html():
+    # The only markup the page ever parses is its own fixed icon set.
+    assert PAGE.count("innerHTML") == 1
+    assert "t.innerHTML = '<svg" in PAGE and "+ ICONS[name] +" in PAGE
+    for risky in ("outerHTML", "insertAdjacentHTML", "document.write", "eval(", "new Function"):
+        assert risky not in PAGE, risky
+
+
+def test_inline_styles_only_take_fixed_values():
+    # Inks and widths come from fixed lists; no data is ever written into a style attribute.
+    script = PAGE.split('<script>\n(() => {', 1)[1]
+    styles = re.findall(r'[{,]\s*style:\s*([^,}]+)', script)
+    assert styles
+    for style in styles:
+        assert re.fullmatch(r'"color:"\s*\+\s*inkFor\(name\)|"width:"\s*\+\s*\(40 \+ i \* 10\)\s*\+\s*"%"', style.strip()), style
+
+
+def _log_logic() -> str:
+    start = PAGE.index("// ---------- log logic")
+    return PAGE[start:PAGE.index("// ---------- end of log logic ----------")]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_undo_matching_and_log_wording():
+    script = _log_logic() + r"""
+const ch = (id, room, summary) => ({ id, room, summary });
+const out = {};
+// Newest first, as the API sends them.
+let log = [ch(3, "Dates", "Undid: Moved Launch from 2026-11-20 to 2026-11-22"),
+           ch(2, "Dates", "Moved Launch from 2026-11-20 to 2026-11-22"),
+           ch(1, "Dates", "Added Launch on 2026-11-20")];
+let m = undoMap(log);
+out.undo = { struck: [...m.struck.keys()], by: m.struck.get(2).id, undid: m.undid.get(3).id };
+m = undoMap([ch(4, "Dates", "Undid: Undid: Moved Launch from 2026-11-20 to 2026-11-22"), ...log]);
+out.redo = [...m.struck.keys()];
+m = undoMap([ch(6, "About you", "Undid: Added note: x"), ch(5, "Work", "Added note: x"), ch(4, "About you", "Added note: x")]);
+out.room = [...m.struck.keys()];
+out.words = [
+  friendly("Added note: Prefers short answers", "About you"),
+  friendly("Updated Mindhall: next step: Ship it", "Work"),
+  friendly("Updated Mindhall: status Active to Parked; next step: none", "Work"),
+  friendly("Moved Launch from 2026-11-20 to 2026-11-22", "Dates"),
+  friendly("Added Launch on 2026-11-20", "Dates"),
+  friendly("Removed Launch (2026-11-20)", "Dates"),
+  friendly("Undid: Added note: x", "About you"),
+  friendly("Added note: Born on 1990-05-01", "About you"),
+  friendly("Added Fiverr gigs (Active)", "Work"),
+];
+console.log(JSON.stringify(out));
+"""
+    res = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=30)
+    assert res.returncode == 0, res.stderr
+    out = json.loads(res.stdout)
+    assert out["undo"] == {"struck": [2], "by": 3, "undid": 2}
+    assert out["redo"] == [3]  # undoing the undo brings the move back
+    assert out["room"] == [4]  # the same words in another room are a different change
+    words = out["words"]
+    assert words[0] == "Added memory: Prefers short answers"
+    assert words[1] == "Updated Mindhall: up next: Ship it"
+    assert words[2] == "Updated Mindhall: status Active to Parked; up next: none"
+    for text in words[3:6]:
+        assert not re.search(r"\d{4}-\d{2}-\d{2}", text), text
+    assert words[3].startswith("Moved Launch from ") and " to " in words[3]
+    assert words[6] == "Undid: Added memory: x"
+    assert words[7] == "Added memory: Born on 1990-05-01"  # what someone wrote stays as written
+    assert words[8] == "Added Fiverr gigs (Active)"
