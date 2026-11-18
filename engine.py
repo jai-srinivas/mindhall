@@ -656,6 +656,16 @@ class Mind:
         return name
 
     @staticmethod
+    def _work_of(row, renames: list):
+        """The project a logged change belongs to, by the name it has now (following later renames)."""
+        room = row["room"]
+        if room not in ("Work", "Projects", "Dates", "Project notes"):
+            return None
+        side = _load(row["after"]) or _load(row["before"]) or {}
+        name = side.get("name") if room in ("Work", "Projects") else side.get("work")
+        return Mind._follow(name, renames, row["id"]) or None
+
+    @staticmethod
     def _present(c, table: str, values: dict) -> bool:
         """Is this item in the mind (by content)? Catches restores by any route, and re-adds by hand."""
         if table == "about":
@@ -943,15 +953,29 @@ class Mind:
             for table, items in (("about", about), ("work", work), ("dates", dates), ("project_notes", notes)):
                 for item in items:
                     item["by"], item["changed_at"] = last.get((table, item["id"]), (None, None))
+            renames = self._renames(c)
             log = [{"id": r["id"], "at": r["at"], "by": r["by"], "room": r["room"], "summary": r["summary"],
-                    "undoable": self._undoable(r)}
+                    "undoable": self._undoable(r), "work": self._work_of(r, renames)}
                    for r in c.execute("SELECT * FROM changes ORDER BY id DESC LIMIT ?", (changes,))]
             readers = self._readers(c)
             deleted = self._removed(c, DELETED_DAYS)
             settings = self._settings(c)
             total = c.execute("SELECT COUNT(*) FROM changes").fetchone()[0]
+            daily = self._daily(c, renames, _zone(settings["time_zone"]))
         return {"about": about, "work": work, "dates": dates, "project_notes": notes, "changes": log,
-                "readers": readers, "deleted": deleted, "settings": settings, "change_count": total, "version": VERSION}
+                "readers": readers, "deleted": deleted, "settings": settings, "change_count": total,
+                "daily": daily, "version": VERSION}
+
+    def _daily(self, c, renames: list, zone, days: int = 14) -> list:
+        """How many changes each AI made to each project, per day, over the last two weeks, counted in
+        the person's time zone: the dashboard's activity charts (not limited to the latest 100 changes)."""
+        cutoff = (self._clock() - timedelta(days=days + 1)).isoformat(timespec="seconds")
+        counts = {}
+        for r in c.execute("SELECT id, at, by, room, before, after FROM changes WHERE at >= ?", (cutoff,)):
+            key = (_local(r["at"], zone).date().isoformat(), r["by"], self._work_of(r, renames))
+            counts[key] = counts.get(key, 0) + 1
+        return [{"day": d, "by": b, "work": w, "n": n}
+                for (d, b, w), n in sorted(counts.items(), key=lambda kv: (kv[0][0], kv[0][1], kv[0][2] or ""))]
 
     def project(self, work_id: int | None = None, name: str | None = None, history: int = 50) -> dict:
         """One project's page: the project, its memories, its dates and the changes that touched it."""

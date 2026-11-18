@@ -405,3 +405,36 @@ def test_ais_hear_about_a_clear_for_two_weeks(mind):
     assert "cleared" in mind.snapshot()
     mind._clock = lambda: datetime.now(timezone.utc) + timedelta(days=15)
     assert "cleared" not in mind.snapshot()
+
+
+# ---------- What the dashboard's charts read ----------
+
+def test_each_change_says_which_project_it_belongs_to_after_renames(mind):
+    mind.set_work("Mindhall", "Claude")
+    mind.set_date("Launch", "2026-11-20", "Claude", work="Mindhall")
+    mind.add_note("Uses SQLite", "Claude", work="Mindhall")
+    mind.add_note("Prefers short answers", "ChatGPT")
+    mind.edit_work(project(mind)["id"], "You", name="Mindhall Cloud")
+    works = {c["summary"]: c["work"] for c in mind.everything()["changes"]}
+    assert works["Added Mindhall (Active)"] == "Mindhall Cloud"            # followed through the rename
+    assert works["Added note to Mindhall: Uses SQLite"] == "Mindhall Cloud"
+    assert works["Updated Mindhall: renamed to Mindhall Cloud"] == "Mindhall Cloud"
+    assert works["Added note: Prefers short answers"] is None              # About you belongs to no project
+    assert [w for s, w in works.items() if s.startswith("Added Launch")] == ["Mindhall Cloud"]
+
+
+def test_daily_counts_cover_two_weeks_in_the_persons_time_zone(mind, tmp_path):
+    mind.set_work("Mindhall", "Claude")
+    mind.add_note("Prefers short answers", "ChatGPT")
+    mind.add_note("Writes in British English", "ChatGPT")
+    with sqlite3.connect(tmp_path / "mind.db") as conn:   # all at 20:00 UTC on 17 Nov
+        conn.execute("UPDATE changes SET at = '2026-11-17T20:00:00+00:00'")
+    mind._clock = lambda: datetime(2026, 11, 18, 2, 0, tzinfo=timezone.utc)
+    mind.set_time_zone("Asia/Kolkata")                        # already 18 Nov there
+    assert mind.everything()["daily"] == [
+        {"day": "2026-11-18", "by": "ChatGPT", "work": None, "n": 2},
+        {"day": "2026-11-18", "by": "Claude", "work": "Mindhall", "n": 1}]
+    mind.set_time_zone("America/Los_Angeles")                 # still 17 Nov there
+    assert {d["day"] for d in mind.everything()["daily"]} == {"2026-11-17"}
+    mind._clock = lambda: datetime(2026, 12, 10, tzinfo=timezone.utc)
+    assert mind.everything()["daily"] == []                   # older than two weeks
