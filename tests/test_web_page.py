@@ -141,3 +141,52 @@ console.log(JSON.stringify({
         "Last read 2h ago · hasn’t seen 1 change",
         "Last read 2h ago · hasn’t seen 3 changes",
     ]
+
+
+def test_style_properties_set_from_script_only_take_fixed_values():
+    # Besides style attributes, the script sets an app's signature ink (from the fixed list) and a growing
+    # text box's height (measured from the box itself). Never data.
+    script = PAGE.split('<script>\n(() => {', 1)[1]
+    assert set(re.findall(r'\.style\.(\w+)\s*=\s*([^;]+);', script)) == {
+        ("color", "inkFor(c.name)"), ("height", '"auto"'), ("height", 't.scrollHeight + "px"')}
+
+
+def test_settings_is_reachable_and_irreversible_actions_need_a_typed_word():
+    assert '<a class="settings-link" id="settings-link" href="#settings">' in PAGE
+    assert "settings: renderSettings" in PAGE
+    assert 'typedConfirm("clear", "Clear my mind"' in PAGE and 'typedConfirm("delete", "Delete my account"' in PAGE
+    assert 'api("POST", "clear", { confirm: word })' in PAGE
+    assert "recent_sign_in" in PAGE          # deleting an account asks you to sign in again first
+
+
+def _run_node(script, tz="UTC"):
+    res = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=30, env={"TZ": tz, "PATH": "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin"})
+    assert res.returncode == 0, res.stderr
+    return json.loads(res.stdout)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_time_zones_are_shown_by_their_current_names():
+    block = PAGE[PAGE.index("  const MODERN = {"):PAGE.index("  const browserZone")]
+    out = _run_node(block + 'console.log(JSON.stringify(["Asia/Calcutta", "Europe/Kiev", "Europe/London"].map(modern)));')
+    assert out == ["Asia/Kolkata", "Europe/Kyiv", "Europe/London"]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_activity_counts_come_from_the_server_or_fall_back_to_the_latest_changes():
+    iso = re.search(r"  const isoDay = .*;\n", PAGE).group(0)
+    daily = PAGE[PAGE.index("  function dailyRows() {"):PAGE.index("  function activity(span) {")]
+    script = "let state;\n" + iso + daily + r"""
+state = { daily: [{ day: "2026-11-17", by: "Claude", work: "Mindhall", n: 4 }], changes: [] };
+const fromServer = dailyRows();
+state = { changes: [
+  { at: "2026-11-17T10:00:00Z", by: "Claude", work: "Mindhall" },
+  { at: "2026-11-17T11:00:00Z", by: "Claude", work: "Mindhall" },
+  { at: "2026-11-16T09:00:00Z", by: "ChatGPT", work: null },
+] };
+console.log(JSON.stringify({ fromServer, fallback: dailyRows().sort((a, b) => (a.day < b.day ? -1 : 1)) }));
+"""
+    out = _run_node(script)
+    assert out["fromServer"] == [{"day": "2026-11-17", "by": "Claude", "work": "Mindhall", "n": 4}]
+    assert out["fallback"] == [{"day": "2026-11-16", "by": "ChatGPT", "work": None, "n": 1},
+                               {"day": "2026-11-17", "by": "Claude", "work": "Mindhall", "n": 2}]

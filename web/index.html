@@ -24,7 +24,8 @@
     --accent: #6d55d6; --accent-hover: #5f47c9; --accent-ink: #ffffff; --accent-soft: rgba(109, 85, 214, .12); --ring: rgba(109, 85, 214, .6);
     --select: rgba(109, 85, 214, .22);
     --you: #6d55d6;
-    --ink-1: #3456d1; --ink-2: #c23a5c; --ink-3: #0b7891; --ink-4: #a3399a; --ink-5: #56627a;
+    --ink-1: #00727c; --ink-2: #8a5800; --ink-3: #2a64c4; --ink-4: #b03a72; --ink-o: #56627a;
+    --mark-1: #009aa6; --mark-2: #a86b00; --mark-3: #2a78d6; --mark-4: #c84d86; --mark-o: #9a9aab; --mark-you: #6d55d6;
     --st-active: #1f7a4f; --st-parked: #9a5b06; --soon: #c2410c;
     --danger: #d13a42; --danger-ink: #ffffff; --danger-soft: #fdecee; --danger-soft-ink: #7a1d24;
     --scrim: rgba(21, 22, 31, .32);
@@ -41,7 +42,8 @@
     --accent: #b9a6f4; --accent-hover: #c8b9f7; --accent-ink: #06070c; --accent-soft: rgba(185, 166, 244, .13); --ring: rgba(185, 166, 244, .65);
     --select: rgba(185, 166, 244, .3);
     --you: #b9a6f4;
-    --ink-1: #8ea6ff; --ink-2: #f48fa4; --ink-3: #6fcbe3; --ink-4: #e293d8; --ink-5: #a8b3c9;
+    --ink-1: #2fbcbc; --ink-2: #e09a1a; --ink-3: #5a9bf0; --ink-4: #e0699a; --ink-o: #a8b3c9;
+    --mark-1: #1aa3a3; --mark-2: #c98500; --mark-3: #3987e5; --mark-4: #d55181; --mark-o: #5a5c70; --mark-you: #b9a6f4;
     --st-active: #5fd09a; --st-parked: #e6b84a; --soon: #f29a55;
     --danger-soft: #2a1215; --danger-soft-ink: #f5b5b9;
     --scrim: rgba(3, 4, 8, .66);
@@ -55,7 +57,8 @@
     --accent: #b9a6f4; --accent-hover: #c8b9f7; --accent-ink: #06070c; --accent-soft: rgba(185, 166, 244, .13); --ring: rgba(185, 166, 244, .65);
     --select: rgba(185, 166, 244, .3);
     --you: #b9a6f4;
-    --ink-1: #8ea6ff; --ink-2: #f48fa4; --ink-3: #6fcbe3; --ink-4: #e293d8; --ink-5: #a8b3c9;
+    --ink-1: #2fbcbc; --ink-2: #e09a1a; --ink-3: #5a9bf0; --ink-4: #e0699a; --ink-o: #a8b3c9;
+    --mark-1: #1aa3a3; --mark-2: #c98500; --mark-3: #3987e5; --mark-4: #d55181; --mark-o: #5a5c70; --mark-you: #b9a6f4;
     --st-active: #5fd09a; --st-parked: #e6b84a; --soon: #f29a55;
     --danger-soft: #2a1215; --danger-soft-ink: #f5b5b9;
     --scrim: rgba(3, 4, 8, .66);
@@ -172,9 +175,6 @@
   .date-row { display: grid; grid-template-columns: 104px minmax(0, 1fr) auto; align-items: baseline; gap: 12px; }
   .date-row .day { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .row .title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .work-row { display: flex; flex-direction: column; gap: 1px; }
-  .work-row .title { font-weight: 600; }
-  .work-row .next { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
   .label { color: var(--faint); }
   .when { color: var(--faint); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .when.soon { color: var(--soon); font-weight: 600; }
@@ -192,7 +192,6 @@
   .tr.past .cell { color: var(--faint); }
   .work-grid { grid-template-columns: minmax(160px, 1.2fr) 112px minmax(180px, 1.7fr) 136px 72px; }
   .date-grid { grid-template-columns: 164px 112px minmax(0, 1fr) 136px 40px; }
-  .note-grid { grid-template-columns: minmax(0, 1fr) 136px 40px; }
   .by { display: flex; align-items: center; min-width: 0; padding: 0 8px; }
   .by .sig { position: relative; top: 1px; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .table .empty { padding-left: 8px; padding-right: 8px; }
@@ -274,12 +273,6 @@
   .top .sub a:hover { color: var(--text); text-decoration-color: currentColor; }
   a.agent { color: inherit; text-decoration: none; }
   a.agent:hover { background: var(--hover); }
-  .ai-row { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1fr) auto; align-items: baseline; column-gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
-  .ai-name .sig { font-size: 16px; }
-  .ai-facts { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .ai-read { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
-  .ai-read.behind { color: var(--text); font-weight: 600; }
-  .ai-wrote { color: var(--faint); font-size: 13px; font-variant-numeric: tabular-nums; }
   .ai-link { color: var(--muted); font-size: 13px; text-decoration: none; white-space: nowrap; }
   .ai-link:hover { color: var(--text); text-decoration: underline; }
   .sees-lede { margin: 14px 0 12px; color: var(--muted); font-size: 14px; max-width: 64ch; }
@@ -292,26 +285,8 @@
   .row-acts { display: flex; align-items: center; justify-content: flex-end; gap: 2px; padding-right: 4px; }
   .row-acts .icon-btn { margin: 0; }
   a.icon-btn { text-decoration: none; }
-  .title-link { color: inherit; text-decoration: none; }
-  .title-link:hover { text-decoration: underline; }
-  .props { display: grid; grid-template-columns: 120px minmax(0, 1fr); margin: 0; border-top: 1px solid var(--line); }
-  .props dt, .props dd { margin: 0; min-height: 44px; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
-  .props dt { padding-left: 2px; color: var(--faint); font-size: 13px; }
-  .props dd { gap: 8px; min-width: 0; }
-  .props dd .cell { font-weight: 600; }
-  .props + .block { margin-top: 48px; }
-  .prop-hint { color: var(--faint); font-size: 13px; }
-  .props dd > .sig, .props dd > .prop-hint:first-child { padding-left: 8px; }
   textarea.cell { display: block; resize: none; overflow: hidden; padding-top: 10px; padding-bottom: 10px; line-height: 1.6;
     white-space: pre-wrap; overflow-wrap: anywhere; }
-  .step, .step-grid { display: grid; grid-template-columns: 28px 36px minmax(0, 1fr) 40px; align-items: center; min-height: 44px; border-bottom: 1px solid var(--line); }
-  .step-n { color: var(--faint); font-size: 13px; font-variant-numeric: tabular-nums; text-align: center; }
-  .step.first .cell, .step.first .what { font-weight: 600; }
-  .step .what { padding: 0 8px; }
-  .step.struck .strike { background-size: 100% 1.5px; color: var(--faint); }
-  .step.struck.strike-in .strike { animation: strike-in .24s cubic-bezier(.16, 1, .3, 1); }
-  .done-btn { margin: 0; }
-  .done-btn:hover { color: var(--you); background: var(--accent-soft); }
   .back { margin-top: 16px; }
   .back a { color: var(--muted); }
 
@@ -340,6 +315,360 @@
     text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; }
   .linkish:hover { text-decoration-color: currentColor; }
 
+  /* ---------- visual views ---------- */
+  .ov-row { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 20px; margin-top: 20px; align-items: start; }
+  .ov-row:first-child { margin-top: 0; }
+  .log-panel .log .entry:last-child { border-bottom: 0; }
+  .panel { min-width: 0; padding: 18px 20px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+  .panel-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+  .panel-head h2 { margin: 0; font: 600 17px/1.3 var(--display); letter-spacing: -.015em; }
+  .panel-head .meta { color: var(--faint); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .panel-head > a { margin-left: auto; color: var(--muted); font-size: 13px; text-decoration: none; white-space: nowrap; }
+  .panel-head > a:hover { color: var(--text); text-decoration: underline; }
+
+  /* identity by AI: marks (fills and strokes) and text use the same hue */
+  .m1 { fill: var(--mark-1); } .m2 { fill: var(--mark-2); } .m3 { fill: var(--mark-3); } .m4 { fill: var(--mark-4); }
+  .mo { fill: var(--mark-o); } .myou { fill: var(--mark-you); }
+  .s1 { stroke: var(--mark-1); } .s2 { stroke: var(--mark-2); } .s3 { stroke: var(--mark-3); } .s4 { stroke: var(--mark-4); }
+  .so { stroke: var(--mark-o); } .syou { stroke: var(--mark-you); }
+  .key-sq.m1 { background: var(--mark-1); } .key-sq.m2 { background: var(--mark-2); } .key-sq.m3 { background: var(--mark-3); }
+  .key-sq.m4 { background: var(--mark-4); } .key-sq.mo { background: var(--mark-o); } .key-sq.myou { background: var(--mark-you); }
+  .key-item { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
+  .key-sq { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 3px; }
+  .key-sq.round { border-radius: 50%; }
+  .key-item .sig { font-size: 13px; }
+
+  /* In sync: one ring per AI */
+  .sync-list { display: flex; flex-direction: column; gap: 2px; }
+  .sync-row { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 14px; margin: 0 -8px; padding: 8px; border-radius: 10px; color: inherit; text-decoration: none; }
+  .sync-row:hover { background: var(--hover); }
+  .sync-ring { width: 52px; height: 52px; flex: none; }
+  .ring-bg { fill: none; stroke: var(--line-2); stroke-width: 5; }
+  .ring-bg.never { stroke-dasharray: 3 4; }
+  .ring-fg { fill: none; stroke-width: 5; stroke-linecap: round; }
+  .ring-check { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .ring-num { fill: var(--text); font: 600 14px var(--ui); font-variant-numeric: tabular-nums; }
+  .sync-text { min-width: 0; }
+  .sync-text .sig { font-size: 15px; }
+  .sync-status { color: var(--muted); font-size: 13.5px; }
+  .sync-status.behind { color: var(--text); font-weight: 600; }
+  .sync-when { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  /* Calendars */
+  .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .cal-day { display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 84px; padding: 6px 7px; border-radius: 9px; background: var(--bg); border: 1px solid var(--line); }
+  .cal-day.today { border-color: var(--accent); }
+  .cal-day.other { background: transparent; border-color: transparent; }
+  .cal-day.other .cal-date { opacity: .55; }
+  .cal-date { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cal-day.today .cal-date { color: var(--you); font-weight: 600; }
+  .cal-ev { display: block; padding: 2px 6px; border-radius: 5px; background: var(--press); color: var(--text); font-size: 12px; line-height: 1.45; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-ev.soon { color: var(--soon); font-weight: 600; }
+  .cal-ev.past { color: var(--faint); }
+  .cal-ev:hover { background: var(--hover); }
+  .cal-list { display: none; }
+  .month-panel { margin-top: 20px; }
+  .month-head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
+  .month-wd { padding-left: 7px; color: var(--faint); font-size: 12px; }
+  .cal.month .cal-day { min-height: 96px; }
+  .month-navs { display: inline-flex; gap: 6px; margin-left: auto; }
+  .month-nav { height: 30px; padding: 0 12px; font-size: 13px; }
+  .dates-top { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+  .up-list { display: flex; flex-direction: column; }
+  .up-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 14px; margin: 0 -8px; padding: 8px; border-radius: 10px; color: inherit; text-decoration: none; }
+  .up-row:hover { background: var(--hover); }
+  .up-tile { display: flex; flex-direction: column; align-items: center; overflow: hidden; border-radius: 8px; border: 1px solid var(--line-2); background: var(--bg); }
+  .up-mon { width: 100%; padding: 1px 0; background: var(--press); color: var(--muted); font-size: 10.5px; font-weight: 600; text-align: center; text-transform: uppercase; letter-spacing: .06em; }
+  .up-day { padding: 2px 0 4px; font: 600 19px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+  .up-tile.soon { border-color: color-mix(in srgb, var(--soon) 55%, var(--line-2)); }
+  .up-tile.soon .up-mon { background: color-mix(in srgb, var(--soon) 22%, var(--press)); color: var(--soon); }
+  .up-text { display: flex; flex-direction: column; min-width: 0; }
+  .up-what { font-weight: 600; overflow-wrap: anywhere; }
+  .up-sub { color: var(--faint); font-size: 13px; }
+  .countdown { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 22px 24px; border-radius: 14px; background: var(--panel);
+    border: 1px solid var(--line); color: inherit; text-decoration: none; }
+  .countdown:hover { background: var(--hover); }
+  .cd-num { font: 600 72px/1 var(--display); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .countdown.soon .cd-num { color: var(--soon); }
+  .cd-text { display: flex; flex-direction: column; gap: 3px; }
+  .cd-unit { color: var(--muted); font-size: 14px; }
+  .cd-what { font: 600 19px/1.3 var(--display); letter-spacing: -.01em; overflow-wrap: anywhere; }
+  .cd-day { color: var(--faint); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+
+  /* Activity over time */
+  .act-chart { display: block; width: 100%; height: auto; }
+  .act-chart .axis { stroke: var(--line-2); }
+  .bar-total { fill: var(--faint); font: 11px var(--ui); font-variant-numeric: tabular-nums; }
+  .bar-day { fill: var(--faint); font: 11px var(--ui); }
+  .bar-day.today { fill: var(--you); font-weight: 600; }
+  .act-key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 13px; }
+  .act-log { margin-top: 36px; }
+
+  /* A switch between the picture and the editable table */
+  .page-bar { display: flex; justify-content: flex-end; margin: -6px 0 16px; }
+
+  /* Projects: the latest in the spotlight, the rest by their pulse */
+  .spot { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 32px; padding: 26px 28px; border-radius: 16px;
+    background: var(--panel); border: 1px solid var(--line); color: inherit; text-decoration: none; }
+  .spot + .spot { margin-top: 14px; }
+  .spot:hover { border-color: var(--line-3); }
+  .spot-eyebrow { color: var(--you); font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .spot-name { margin: 4px 0 14px; font: 600 30px/1.15 var(--display); letter-spacing: -.025em; overflow-wrap: anywhere; }
+  .spot-steps { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .spot-steps li { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: baseline; gap: 10px; color: var(--muted); font-size: 15px; }
+  .spot-steps li.first { color: var(--text); font-size: 19px; font-weight: 600; }
+  .spot-n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-3); color: var(--faint); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .spot-steps li.first .spot-n { border-color: var(--you); background: var(--you); color: var(--accent-ink); }
+  .spot-none { color: var(--faint); }
+  .spot-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 20px; color: var(--faint); font-size: 13.5px; }
+  .spot-foot .sig { font-size: 13.5px; }
+  .spot-side { display: flex; flex-direction: column; justify-content: space-between; gap: 22px; padding-left: 28px; border-left: 1px solid var(--line); }
+  .spot-count { display: flex; flex-direction: column; gap: 6px; }
+  .spot-count .cd-num { font-size: 64px; }
+  .spot-count.soon .cd-num { color: var(--soon); }
+  .spot-count .cd-unit { font-size: 15px; color: var(--muted); }
+  .spot-nodate { color: var(--faint); }
+  .spot-pulse .label { margin-bottom: 6px; font-size: 12.5px; }
+  .spot-pulse .pulse { width: 100%; height: 40px; }
+  .pulse { display: block; width: 140px; height: 30px; }
+  .pulse .off { fill: var(--line-2); }
+  .pulse .on { fill: var(--muted); }
+  .pulse .on.today { fill: var(--you); }
+  .pgroup { margin-top: 40px; }
+  .prow-head, .prow { display: grid; grid-template-columns: minmax(0, 1fr) 140px 190px 56px; align-items: center; column-gap: 24px; }
+  .prow-head { padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .prow-head h2 { margin: 0; font: 600 16px/1.3 var(--display); letter-spacing: -.01em; }
+  .prow-head .label { font-size: 12.5px; }
+  .prow { padding: 14px 0; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; }
+  .prow:hover { background: var(--hover); box-shadow: -10px 0 0 var(--hover), 10px 0 0 var(--hover); }   /* the hover reaches past the text; the rule lines stay put */
+  .prow-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .prow-name { font-weight: 600; font-size: 15.5px; overflow-wrap: anywhere; }
+  .prow-next { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+  .prow.quiet .prow-name { color: var(--muted); }
+  .prow.quiet .prow-next { color: var(--faint); }
+  .prow.quiet .pulse { opacity: .6; }
+  .prow-date { display: flex; flex-direction: column; min-width: 0; font-size: 13.5px; }
+  .prow-what { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prow .ai-dots { justify-content: flex-end; }
+  .ai-dots { display: inline-flex; gap: 4px; }
+  .ai-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .done-line { margin-top: 28px; color: var(--muted); font-size: 14px; }
+  .done-line a { color: var(--muted); }
+
+  /* A project's page: a story, not a folder */
+  .title-cell { min-height: 0; margin-left: -8px; padding: 2px 8px; font: inherit; letter-spacing: inherit; color: inherit; }
+  .story-hero { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 32px; padding: 24px 28px 26px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+  .story-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 20px; }
+  .story-ais { color: var(--faint); font-size: 13.5px; }
+  .story-ais .sig { font-size: 13.5px; }
+  .path { position: relative; display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+  .path-step { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr); column-gap: 14px; align-items: start; padding-bottom: 12px; }
+  .path-step:not(:last-child)::before { content: ""; position: absolute; left: 17px; top: 36px; bottom: 0; width: 2px; background: var(--line-2); }
+  .path-node { position: relative; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--line-3); background: var(--panel); color: var(--muted); cursor: pointer; }
+  .path-node svg { display: none; width: 16px; height: 16px; }
+  .path-node:hover .path-n, .path-node:focus-visible .path-n { display: none; }
+  .path-node:hover svg, .path-node:focus-visible svg { display: block; }
+  .path-node:hover { border-color: var(--st-active); color: var(--st-active); }
+  .path-n { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .path-step.first .path-node { border-color: var(--you); background: var(--you); color: var(--accent-ink); }
+  .path-node.ghost { border-style: dashed; cursor: default; color: var(--faint); }
+  .path-node.ghost svg { display: block; }
+  .path-body { min-width: 0; padding-top: 1px; }
+  .path-label { padding: 0 8px; color: var(--faint); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .path-body .cell { min-height: 34px; padding-top: 5px; padding-bottom: 5px; font-size: 16px; line-height: 1.35; }
+  .path-step.first .path-body .cell, .path-step.first .what { font-size: 21px; font-weight: 600; font-family: var(--display); letter-spacing: -.01em; }
+  .path-step .what { padding: 4px 8px; }
+  .path-step.struck .strike { background-size: 100% 1.5px; color: var(--faint); }
+  .path-step.struck.strike-in .strike { animation: strike-in .24s cubic-bezier(.16, 1, .3, 1); }
+  .story-count { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding-left: 28px; border-left: 1px solid var(--line); }
+  .story-count .cd-num { font-size: 76px; }
+  .story-count.soon .cd-num { color: var(--soon); }
+  .story-count.none { gap: 8px; }
+  .story-count.none .btn { align-self: flex-start; margin-top: 6px; }
+  .story-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 36px; margin-top: 36px; align-items: start; }
+  .story-col .col-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; padding: 0; }
+  .story-col .col-head h2 { margin: 0; font: 600 17px/1.3 var(--display); letter-spacing: -.015em; }
+  .story-col .col-head .meta { color: var(--faint); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .mcards.one { grid-template-columns: minmax(0, 1fr); }
+  .tl { position: relative; padding-left: 30px; }
+  .tl::before { content: ""; position: absolute; left: 10px; top: 8px; bottom: 8px; width: 2px; background: var(--line-2); }
+  .tl-item { position: relative; }
+  .tl-dot { position: absolute; left: -25px; top: 15px; width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 4px var(--bg); }
+  .tl-item.date { display: grid; grid-template-columns: 112px minmax(0, 1fr) 32px; align-items: start; column-gap: 6px; padding: 6px 0; }
+  .tl-item.date .tl-dot { top: 16px; border-radius: 2px; transform: rotate(45deg); background: var(--muted); }
+  .tl-item.date.soon .tl-dot { background: var(--soon); }
+  .tl-item.date.past .tl-dot { background: var(--line-3); }
+  .tl-item.date .datecell { min-height: 40px; }
+  .tl-item.date .tl-body .cell { min-height: 40px; font-weight: 600; }
+  .tl-item.date.past .tl-body .cell { color: var(--muted); font-weight: 500; }
+  .tl-sub { padding: 0 8px; color: var(--faint); font-size: 13px; }
+  .tl-sub .sig, .tl-sub .when { font-size: 13px; }
+  .tl-item.date .icon-btn { margin: 6px 0 0; opacity: 0; }
+  .tl-item.date:hover .icon-btn, .tl-item.date .icon-btn:focus-visible { opacity: 1; }
+  @media (hover: none) { .tl-item.date .icon-btn { opacity: 1; } }
+  .tl-add { display: inline-flex; align-items: center; gap: 6px; height: 32px; margin: 2px 0 0 2px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; font-size: 13.5px; }
+  .tl-add:hover { background: var(--hover); color: var(--text); }
+  .tl-add svg { width: 15px; height: 15px; }
+  .tl-today { position: relative; display: flex; align-items: center; gap: 12px; margin: 14px 0 6px; color: var(--you); font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .tl-today::before { content: ""; position: absolute; left: -26px; width: 14px; height: 14px; border-radius: 50%; background: var(--you); box-shadow: 0 0 0 4px var(--bg); }
+  .tl-today::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: .45; }
+  .tl-item.log .entry { border-bottom: 1px solid var(--line); }
+  .tl-item.log .tl-dot { top: 18px; }
+  .tl-empty { padding: 14px 0; color: var(--faint); font-size: 14px; }
+  .tl-start { position: relative; padding: 14px 0 0; color: var(--faint); font-size: 13px; }
+  .tl-start::before { content: ""; position: absolute; left: -25px; top: 16px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-3); background: var(--bg); }
+
+  /* About you as memory cards */
+  .about-sum { margin-bottom: 20px; }
+  .about-big { font: 600 24px/1.25 var(--display); letter-spacing: -.02em; }
+  .about-meta { margin-top: 4px; color: var(--faint); font-size: 14px; }
+  .about-meta .sig { font-size: 14px; }
+  .mcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; align-items: start; }
+  .mcard { display: flex; flex-direction: column; gap: 6px; padding: 10px 10px 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+  .mcard .cell { font-size: 15px; line-height: 1.5; padding: 6px 8px; }
+  .mcard.add { border-style: dashed; border-color: var(--line-3); background: transparent; }
+  .mc-foot { display: flex; align-items: center; gap: 8px; padding: 0 8px; color: var(--faint); font-size: 12.5px; }
+  .mc-foot .sig { font-size: 12.5px; }
+  .mc-when { font-variant-numeric: tabular-nums; }
+  .mc-foot .icon-btn { margin: 0 0 0 auto; opacity: 0; }
+  .mcard:hover .icon-btn, .mcard .icon-btn:focus-visible { opacity: 1; }
+  @media (hover: none) { .mc-foot .icon-btn { opacity: 1; } }
+
+  /* Your AIs as cards with rings */
+  .ai-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 40px; }
+  .ai-card { display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-areas: "r t" "r l"; align-items: center; column-gap: 14px; row-gap: 4px;
+    padding: 14px 16px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+  .ai-card .sync-ring { grid-area: r; }
+  .ai-card-text { grid-area: t; min-width: 0; }
+  .ai-card-text .sig { font-size: 16px; }
+  .ai-card .ai-link { grid-area: l; }
+
+  @media (max-width: 1100px) { .ov-row { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 900px) {
+    .dates-top, .story-body { grid-template-columns: minmax(0, 1fr); }
+    .spot, .story-hero { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+    .spot-side, .story-count { padding: 20px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+    .prow-head, .prow { grid-template-columns: minmax(0, 1fr) 120px; row-gap: 8px; }
+    .prow-head > :nth-child(3), .prow-head > :nth-child(4) { display: none; }
+    .prow-date { grid-column: 1; flex-direction: row; gap: 8px; }
+    .prow .ai-dots { grid-column: 2; grid-row: 2; }
+  }
+  @media (max-width: 600px) {
+    .panel { padding: 14px 14px 16px; }
+    .cal-day, .cal.month .cal-day { min-height: 44px; padding: 5px; align-items: center; }
+    .cal-wd, .cal-ev { display: none; }
+    .cal-day.has::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+    .cal-day.has.soon::after { background: var(--soon); }
+    .cal-day.has.past::after { background: var(--line-3); }
+    .month-wd { padding-left: 0; text-align: center; }
+    .cal-list { display: block; margin-top: 10px; }
+    .month-panel .panel-head { flex-wrap: wrap; }
+    .cd-num { font-size: 56px; }
+    .page-bar { justify-content: flex-start; margin-top: 0; }
+    .spot, .story-hero { padding: 20px 18px; }
+    .spot-name { font-size: 26px; }
+    .spot-count .cd-num, .story-count .cd-num { font-size: 56px; }
+    .prow-head, .prow { grid-template-columns: minmax(0, 1fr) 96px; column-gap: 14px; }
+    .prow .pulse, .prow-head > :nth-child(2) { width: 96px; }
+    .tl-item.date { grid-template-columns: minmax(0, 1fr) 32px; }
+    .tl-item.date .datecell { grid-column: 1; }
+    .tl-item.date .tl-body { grid-column: 1; }
+    .tl-item.date .icon-btn { grid-column: 2; grid-row: 1; }
+  }
+
+
+  /* ---------- Settings ---------- */
+  .side .foot a.settings-link { display: flex; align-items: center; gap: 10px; height: 34px; margin: 0 -8px 6px; padding: 0 8px; border-radius: 6px;
+    color: var(--muted); font-size: 14px; text-decoration: none; }
+  .side .foot a.settings-link svg { width: 17px; height: 17px; flex: none; color: var(--faint); }
+  .side .foot a.settings-link:hover { background: var(--hover); color: var(--text); text-decoration: none; }
+  .side .foot a.settings-link[aria-current="page"] { background: var(--press); color: var(--text); font-weight: 600; }
+  .side .foot a.settings-link[aria-current="page"] svg { color: var(--accent); }
+
+  .settings { display: flex; flex-direction: column; gap: 20px; }
+  .set-panel { padding-bottom: 6px; }
+  .set-panel .panel-head { margin-bottom: 6px; }
+  .srow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 28px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .srow-title { font-weight: 600; font-size: 15px; }
+  .srow-sub { margin-top: 2px; color: var(--muted); font-size: 14px; line-height: 1.5; max-width: 64ch; }
+  .srow-sub a { color: var(--text); }
+  .srow-sub.pad { padding: 14px 0; border-top: 1px solid var(--line); }
+  .set-panel .panel-head + .srow-sub { margin: -2px 0 14px; }
+  .srow-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+  a.btn { color: var(--text); text-decoration: none; }
+
+  .conn { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 6px 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .conn .sync-ring { width: 44px; height: 44px; }
+  .conn-text { min-width: 0; }
+  .conn-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .conn-name .sig { font-size: 15.5px; }
+  .conn-rename { width: auto; max-width: 260px; field-sizing: content; min-width: 4ch; min-height: 30px; margin-left: -8px; padding: 0 8px; font-weight: 600; font-size: 15.5px; }
+  .conn-sub { color: var(--faint); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .conn-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+  .conn.off .conn-ring, .conn.off .conn-name .sig { opacity: .5; }
+  .tag { color: var(--faint); font-size: 12.5px; font-weight: 600; white-space: nowrap; }   /* a quiet word, never a filled badge */
+  .connect { padding: 16px 0 12px; border-top: 1px solid var(--line); }
+  .addr { display: flex; align-items: center; gap: 10px; margin-top: 12px; max-width: 640px; }
+  .addr-text { flex: 1; min-width: 0; padding: 8px 12px; border-radius: 8px; background: var(--rail); border: 1px solid var(--line); color: var(--text); font-size: 14px; overflow-wrap: anywhere; user-select: all; }
+
+  .theme-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 168px)); gap: 14px; padding: 2px 0 14px; }
+  .theme-card { display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; text-align: left; }
+  .tc-art { display: flex; height: 92px; overflow: hidden; border-radius: 10px; border: 1px solid var(--line-2); }
+  .theme-card:hover .tc-art { border-color: var(--line-3); }
+  .theme-card[aria-pressed="true"] .tc-art { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+  .theme-card[aria-pressed="true"] .tc-label { color: var(--text); font-weight: 600; }
+  .tc-mini { flex: 1; display: flex; min-width: 0; }
+  .tc-mini.light { background: #f7f7fb; } .tc-mini.dark { background: #06070c; }   /* pictures of each theme: fixed on purpose */
+  .tc-rail { width: 30%; } .light .tc-rail { background: #eeeef5; } .dark .tc-rail { background: #0e0f18; }
+  .tc-main { flex: 1; display: flex; flex-direction: column; gap: 7px; padding: 14px 10px; }
+  .tc-line { height: 6px; border-radius: 3px; } .light .tc-line { background: #d8d8e4; } .dark .tc-line { background: #262838; }
+  .tc-line.l1 { width: 55%; } .light .tc-line.l1 { background: #6d55d6; } .dark .tc-line.l1 { background: #b9a6f4; }
+  .tc-line.l2 { width: 85%; } .tc-line.l3 { width: 45%; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 4px 0 18px; }
+  .stat { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .stat-n { font: 600 28px/1.15 var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .stat-l { color: var(--faint); font-size: 13px; }
+  .set-panel .gone { margin-top: 0; padding: 16px 0 6px; border-top: 1px solid var(--line); }
+  .set-panel .gone .past-title { margin-bottom: 4px; }
+  .set-panel .gone-row:last-child { border-bottom: 0; }
+  .confirm-input { width: 150px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--input); color: var(--text); font: inherit; font-size: 14px; }
+  .confirm-input:focus { outline: 2px solid var(--ring); outline-offset: 1px; border-color: var(--accent); }
+
+  .zone-select { max-width: 280px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--input); color: var(--text); font: inherit; font-size: 14px; }
+  .zone-select:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+  .switch-row { display: inline-flex; align-items: center; gap: 10px; }
+  .switch-state { color: var(--muted); font-size: 13.5px; }
+  .switch { position: relative; width: 40px; height: 24px; padding: 0; border: 0; border-radius: 12px; background: var(--line-3); cursor: pointer; transition: background-color .15s ease-out; }
+  .switch[aria-checked="true"] { background: var(--accent); }
+  .switch-knob { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--panel); transition: transform .15s ease-out; }
+  .switch[aria-checked="true"] .switch-knob { transform: translateX(16px); }
+  .switch:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+  .switch-state.on { color: var(--st-parked); font-weight: 600; }
+  .danger-panel { border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); }
+  .side .foot a.paused-note { align-self: flex-start; margin: 0 0 4px; padding: 3px 8px 3px 0; color: var(--st-parked); font-size: 13px; font-weight: 600; text-decoration: none; }
+  .side .foot a.paused-note:hover { text-decoration: underline; }
+  .side .foot a.paused-note[hidden] { display: none; }
+
+  @media (max-width: 760px) {
+    .srow { grid-template-columns: minmax(0, 1fr); }
+    .srow-ctl { justify-content: flex-start; }
+    .conn { grid-template-columns: 44px minmax(0, 1fr); }
+    .conn-ctl { grid-column: 1 / -1; justify-content: flex-start; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .theme-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .tc-art { height: 72px; }
+  }
+  @media (max-width: 600px) {
+    .conn-ctl { gap: 8px; }
+    .conn-ctl .seg button { padding: 0 9px; font-size: 13.5px; }
+    .conn-ctl .btn { padding: 0 11px; }
+    .set-panel .gone-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: none; row-gap: 6px; }
+    .set-panel .gone-row > * { grid-area: auto; }
+    .set-panel .gone-acts { justify-content: flex-start; }
+  }
+
   /* ---------- narrower screens ---------- */
   @media (max-width: 1000px) { .two { grid-template-columns: 1fr; gap: 0; } .two > .block + .block { margin-top: 48px; } }
   @media (max-width: 860px) {
@@ -358,10 +687,7 @@
     .tr.head { display: none; }
     /* Projects: name and status, then up next across the full width, then who signed it (as the log does). */
     .work-grid { grid-template-columns: minmax(0, 1fr) 100px 64px; grid-template-areas: "a b x" "c c x" "d d x"; }
-    .ai-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n l" "f f"; row-gap: 4px; }
-    .ai-name { grid-area: n; } .ai-facts { grid-area: f; } .ai-link { grid-area: l; }
     .date-grid { grid-template-columns: 104px minmax(0, 1fr) 36px; grid-template-areas: "a c x" "b d x"; }
-    .note-grid { grid-template-columns: minmax(0, 1fr) 36px; grid-template-areas: "a x" "d x"; }
     .tr > :nth-child(1) { grid-area: a; }
     .work-grid > :nth-child(2), .date-grid > :nth-child(2) { grid-area: b; }
     .work-grid > :nth-child(3), .date-grid > :nth-child(3) { grid-area: c; }
@@ -371,7 +697,6 @@
     .date-grid > .when { margin: 0 8px 8px; }
     .by { padding: 0 8px 8px; }
     .by .sig { font-size: 13px; }
-    .note-grid > .by { margin-top: -6px; }
     .tr > .by:empty { display: none; }
   }
   @media (max-width: 600px) {
@@ -396,7 +721,6 @@
     .gone-what { grid-area: w; } .gone-meta { grid-area: m; } .gone-acts { grid-area: a; }
     .prompt { grid-template-columns: 1fr; }
     .prompt .btn { justify-self: start; }
-    .props { grid-template-columns: 88px minmax(0, 1fr); }
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
@@ -408,6 +732,8 @@
     <nav class="views" id="nav" aria-label="Views"></nav>
     <section aria-labelledby="ais-title"><h2 class="side-title" id="ais-title"><a id="ais-link" href="#ais">Your AIs</a></h2><div class="agents" id="agents"></div></section>
     <div class="foot">
+      <a class="paused-note" id="paused-note" href="#settings" hidden>Saving paused</a>
+      <a class="settings-link" id="settings-link" href="#settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a>
       <p class="motto">Every change, signed.</p>
     </div>
   </aside>
@@ -459,7 +785,8 @@
     { id: "activity", label: "Activity", icon: "log" },
   ];
   // Each AI writes in its own ink; you write in violet. Fixed values only, never data.
-  const INKS = ["var(--ink-1)", "var(--ink-2)", "var(--ink-3)", "var(--ink-4)", "var(--ink-5)"];
+  const INKS = ["var(--ink-1)", "var(--ink-2)", "var(--ink-3)", "var(--ink-4)"];  // a fifth AI and beyond: Other
+  let inkOrder = [];
   const LOOK_KEY = "mindhall:last-look:" + base;   // when you last looked, so Overview can say what's new
   let state = null, lastJSON = "", view = "overview", projectId = null, seen = null, inks = {}, agentFilter = "All", highlight = null;
   let look = null, prevStruck = null, justStruck = new Set(), arrivals = new Set();
@@ -542,7 +869,8 @@
   function assignInks() {
     inks = {};
     const items = state ? [...state.about, ...state.work, ...state.dates, ...state.changes, ...(state.project_notes || []), ...(state.readers || [])] : [];
-    [...new Set(items.map((c) => c.by).filter(Boolean))].filter((n) => n !== "You").sort().forEach((n, i) => { inks[n] = INKS[i % INKS.length]; });
+    inkOrder = [...new Set(items.map((c) => c.by).filter(Boolean))].filter((n) => n !== "You").sort();
+    inkOrder.forEach((n, i) => { inks[n] = i < INKS.length ? INKS[i] : "var(--ink-o)"; });
   }
   const inkFor = (name) => name === "You" ? "var(--you)" : (inks[name] || INKS[0]);
   const sig = (name) => el("span", { class: "sig", style: "color:" + inkFor(name) }, name);
@@ -799,37 +1127,700 @@
         el("button", { class: "linkish", type: "button", onclick: () => openNew("note") }, "something about you"), "."));
   }
 
+  // ---------- visual views: the mind shown, not listed ----------
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, ...kids) {   // SVG elements; text always goes in as text nodes
+    const e = document.createElementNS(SVGNS, tag);
+    for (const [k, v] of Object.entries(attrs || {})) if (v !== undefined && v !== null && v !== false) e.setAttribute(k, String(v));
+    for (const kid of kids.flat(Infinity)) if (kid !== null && kid !== undefined) e.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    return e;
+  }
+  const tip = (text) => sv("title", {}, text);
+  const slot = (name) => { if (name === "You") return "you"; const i = inkOrder.indexOf(name); return i >= 0 && i < INKS.length ? String(i + 1) : "o"; };
+  const isFresh = (item) => !!(look && item && item.changed_at && item.by !== "You" && Date.parse(item.changed_at) > Date.parse(look.at));
+  const clip = (t, n) => { t = String(t || ""); return t.length > n ? t.slice(0, n - 1) + "…" : t; };
+  const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+  const panel = (id, title, meta, link, cls, body) => el("section", { class: "panel " + (cls || ""), "aria-labelledby": id },
+    el("div", { class: "panel-head" }, el("h2", { id }, title), meta ? el("span", { class: "meta" }, meta) : null, link), body);
+  let layouts = {};
+  try { layouts = JSON.parse(localStorage.getItem("mindhall:layouts") || "{}") || {}; } catch (e) { layouts = {}; }
+  function setLayout(page, value) {
+    layouts[page] = value;
+    try { localStorage.setItem("mindhall:layouts", JSON.stringify(layouts)); } catch (e) {}
+    render();
+  }
+  function toggle(page, options, current) {   // a two-way switch between the visual view and the editable one
+    return el("div", { class: "seg view-toggle", role: "group", "aria-label": "View" }, options.map(([k, l]) =>
+      el("button", { type: "button", "aria-pressed": String(current === k), onclick: () => setLayout(page, k) }, l)));
+  }
+
+  // What belongs to a project, and which AIs have been working on it.
+  function projectBits(w) {
+    const notes = (state.project_notes || []).filter((n) => same(n.work, w.name));
+    const dates = state.dates.filter((d) => same(d.work, w.name));
+    const upcoming = dates.filter((d) => daysUntil(d.day) >= 0);
+    const touched = [w, ...notes, ...dates];
+    const ais = [...new Set(touched.map((x) => x.by).filter(Boolean))];
+    const fresh = touched.some(isFresh);
+    return { notes, dates, upcoming, ais, fresh, next: upcoming[0] };
+  }
+  const aiDots = (names) => el("span", { class: "ai-dots" }, names.map((n) =>
+    el("span", { class: "ai-dot key-sq m" + slot(n), title: n, "aria-label": n })));
+
+  // ---------- In sync: a ring per AI ----------
+  function syncRow(n) {
+    const reader = (state.readers || []).find((r) => r.by === n);
+    const missed = reader ? reader.missed || 0 : null;
+    const frac = reader ? (missed ? Math.max(0.12, 1 - missed / (missed + 4)) : 1) : 0;
+    const C = 2 * Math.PI * 20, s = slot(n);
+    const wrote = state.changes.find((c) => c.by === n);
+    const ring = sv("svg", { viewBox: "0 0 52 52", class: "sync-ring", "aria-hidden": "true" },
+      sv("circle", { cx: 26, cy: 26, r: 20, class: "ring-bg" + (reader ? "" : " never") }),
+      frac > 0 ? sv("circle", { cx: 26, cy: 26, r: 20, class: "ring-fg s" + s, "stroke-dasharray": `${(C * frac).toFixed(1)} ${C.toFixed(1)}`,
+        transform: "rotate(-90 26 26)" }) : null,
+      missed === 0 ? sv("path", { d: "M19 26.5l4.6 4.6L33.5 21", class: "ring-check s" + s })
+        : missed ? sv("text", { x: 26, y: 30.5, "text-anchor": "middle", class: "ring-num" }, String(missed)) : null);
+    const status = !reader ? "Hasn’t read yet" : missed ? "Behind by " + plural(missed, "change", "changes") : "Up to date";
+    return { ring, status, missed, reader, wrote };
+  }
+  function syncPanel() {
+    const names = aiNames();
+    const rows = names.map((n) => {
+      const r = syncRow(n);
+      return el("a", { class: "sync-row", href: "#ais" }, r.ring,
+        el("div", { class: "sync-text" }, sig(n),
+          el("p", { class: "sync-status" + (r.missed ? " behind" : "") }, r.status),
+          el("p", { class: "sync-when" }, r.reader ? "read " + ago(r.reader.at) : "")));
+    });
+    const behind = names.filter((n) => syncRow(n).missed).length;
+    return panel("sync-title", "In sync", names.length ? (behind ? behind + " behind" : "all up to date") : null,
+      el("a", { href: "#ais" }, "Your AIs"), "sync-panel",
+      rows.length ? el("div", { class: "sync-list" }, rows) : empty("No AIs yet", "Connect an AI and it shows up here once it reads your mind."));
+  }
+
+  // ---------- Dates: the next two weeks, and a month ----------
+  const isoDay = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const dayState = (evs) => !evs.length ? "" : " has" + (evs.some((e) => daysUntil(e.day) >= 0 && daysUntil(e.day) <= 7) ? " soon"
+    : evs.every((e) => daysUntil(e.day) < 0) ? " past" : "");   // phones show only a dot: orange when soon, faded once past
+  function dateChip(e, soonish) {
+    const proj = state.work.find((w) => same(w.name, e.work));
+    return el("a", { class: "cal-ev" + (soonish ? " soon" : "") + (daysUntil(e.day) < 0 ? " past" : ""),
+      href: proj ? "#project/" + proj.id : "#dates", title: e.what + (e.work ? " (" + e.work + ")" : "") }, e.what);
+  }
+  function twoWeeks() {
+    const start = midnight(new Date());
+    const days = [...Array(14)].map((_, i) => { const d = new Date(start); d.setDate(d.getDate() + i); return d; });
+    const byDay = {};
+    for (const d of state.dates) (byDay[d.day] = byDay[d.day] || []).push(d);
+    const later = state.dates.filter((d) => daysUntil(d.day) >= 14).length;
+    const cells = days.map((d, i) => {
+      const evs = byDay[isoDay(d)] || [];
+      return el("div", { class: "cal-day" + (i === 0 ? " today" : "") + dayState(evs) },
+        el("p", { class: "cal-date" }, el("span", { class: "cal-wd" }, d.toLocaleDateString(undefined, { weekday: "short" })), " ", String(d.getDate())),
+        evs.map((e) => dateChip(e, i <= 7)));
+    });
+    const list = state.dates.filter((d) => daysUntil(d.day) >= 0 && daysUntil(d.day) < 14).map((d) =>
+      el("div", { class: "row date-row" }, el("span", { class: "day" }, dayLabel(d.day)), el("span", { class: "title" }, d.what),
+        el("span", { class: "when" + (daysUntil(d.day) <= 7 ? " soon" : "") }, whenLabel(d.day))));
+    return panel("cal-title", "Next two weeks", later ? later + " more later" : null, el("a", { href: "#dates" }, "All dates"), "cal-panel",
+      [el("div", { class: "cal" }, cells), el("div", { class: "cal-list" }, list.length ? list : empty("Nothing in the next two weeks", "Tell any AI a date, or add one in Dates."))]);
+  }
+  let monthOffset = 0;
+  function monthCalendar() {
+    const now = new Date();
+    const first = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+    const lead = (first.getDay() + 6) % 7;   // weeks start on Monday
+    const start = new Date(first); start.setDate(1 - lead);
+    const weeks = Math.ceil((lead + new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()) / 7);
+    const byDay = {};
+    for (const d of state.dates) (byDay[d.day] = byDay[d.day] || []).push(d);
+    const todayIso = isoDay(midnight(new Date()));
+    const head = [...Array(7)].map((_, i) => { const d = new Date(start); d.setDate(d.getDate() + i);
+      return el("p", { class: "month-wd" }, d.toLocaleDateString(undefined, { weekday: "short" })); });
+    const cells = [...Array(weeks * 7)].map((_, i) => {
+      const d = new Date(start); d.setDate(d.getDate() + i);
+      const key = isoDay(d), evs = byDay[key] || [];
+      return el("div", { class: "cal-day month-day" + (d.getMonth() !== first.getMonth() ? " other" : "") + (key === todayIso ? " today" : "") + dayState(evs) },
+        el("p", { class: "cal-date" }, String(d.getDate())), evs.map((e) => dateChip(e, daysUntil(e.day) >= 0 && daysUntil(e.day) <= 7)));
+    });
+    const title = first.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    const nav = (step, label) => el("button", { class: "btn month-nav", type: "button", "aria-label": label, onclick: () => { monthOffset += step; render(); } }, step < 0 ? "Previous" : "Next");
+    return panel("month-title", title, null, el("span", { class: "month-navs" }, nav(-1, "Previous month"),
+      monthOffset ? el("button", { class: "btn month-nav", type: "button", onclick: () => { monthOffset = 0; render(); } }, "Today") : null, nav(1, "Next month")),
+      "month-panel", [el("div", { class: "month-head" }, head), el("div", { class: "cal month" }, cells),
+        el("div", { class: "cal-list" }, monthList(first))]);
+  }
+  function monthList(first) {   // phones: the month's dates as rows, since the grid only shows dots there
+    const rows = state.dates.filter((d) => { const t = new Date(d.day + "T00:00:00"); return t.getMonth() === first.getMonth() && t.getFullYear() === first.getFullYear(); })
+      .map((d) => el("div", { class: "row date-row" + (daysUntil(d.day) < 0 ? " past" : "") }, el("span", { class: "day" }, dayLabel(d.day)), el("span", { class: "title" }, d.what),
+        el("span", { class: "when" + (daysUntil(d.day) >= 0 && daysUntil(d.day) <= 7 ? " soon" : daysUntil(d.day) < 0 ? " past" : "") }, whenLabel(d.day))));
+    return rows.length ? rows : empty("Nothing this month", "Dates you or your AIs add show up here.");
+  }
+  function comingUp() {   // the next dates as tear-off calendar tiles
+    const upcoming = state.dates.filter((d) => daysUntil(d.day) >= 0);
+    const rows = upcoming.slice(0, 5).map((d) => {
+      const t = new Date(d.day + "T00:00:00"), n = daysUntil(d.day);
+      const proj = state.work.find((w) => same(w.name, d.work));
+      return el("a", { class: "up-row", href: proj ? "#project/" + proj.id : "#dates" },
+        el("span", { class: "up-tile" + (n <= 7 ? " soon" : "") }, el("span", { class: "up-mon" }, t.toLocaleDateString(undefined, { month: "short" })),
+          el("span", { class: "up-day" }, String(t.getDate()))),
+        el("span", { class: "up-text" }, el("span", { class: "up-what" }, d.what),
+          el("span", { class: "up-sub" }, [t.toLocaleDateString(undefined, { weekday: "long" }), d.work].filter(Boolean).join(" · "))),
+        el("span", { class: "when" + (n <= 7 ? " soon" : "") }, whenLabel(d.day)));
+    });
+    const later = upcoming.length - rows.length;
+    return panel("up-title", "Coming up", later > 0 ? later + " more later" : null, null, "up-panel",
+      rows.length ? el("div", { class: "up-list" }, rows) : empty("Nothing coming up", "Tell any AI a date, or add one with New."));
+  }
+  function countdown() {
+    const next = state.dates.filter((d) => daysUntil(d.day) >= 0)[0];
+    if (!next) return null;
+    const n = daysUntil(next.day);
+    const proj = state.work.find((w) => same(w.name, next.work));
+    return el("a", { class: "countdown" + (n <= 7 ? " soon" : ""), href: proj ? "#project/" + proj.id : "#dates" },
+      el("span", { class: "cd-num" }, n === 0 ? "Today" : String(n)),
+      el("span", { class: "cd-text" }, el("span", { class: "cd-unit" }, n === 0 ? "" : n === 1 ? "day to go" : "days to go"),
+        el("span", { class: "cd-what" }, next.what), el("span", { class: "cd-day" }, niceDay(next.day) + (next.work ? " · " + next.work : ""))));
+  }
+
+  // ---------- Activity over time ----------
+  // Changes per day, per AI and per project, for the last two weeks. The server counts them in your time
+  // zone (not limited to the latest changes); an older server doesn't, so count the changes it sent.
+  function dailyRows() {
+    if (state.daily) return state.daily;
+    const rows = {};
+    for (const c of state.changes) {
+      const day = isoDay(new Date(c.at)), key = day + "|" + c.by + "|" + (c.work || "");
+      (rows[key] = rows[key] || { day, by: c.by, work: c.work || null, n: 0 }).n++;
+    }
+    return Object.values(rows);
+  }
+  function activity(span) {
+    const start = midnight(new Date()); start.setDate(start.getDate() - (span - 1));
+    const days = [...Array(span)].map((_, i) => { const d = new Date(start); d.setDate(d.getDate() + i); return d; });
+    const counts = days.map(() => ({}));
+    const who = new Set();
+    const index = {};
+    days.forEach((d, i) => { index[isoDay(d)] = i; });
+    for (const r of dailyRows()) {
+      const i = index[r.day];
+      if (i === undefined) continue;
+      const k = slot(r.by) === "o" ? "Other AIs" : r.by;
+      counts[i][k] = (counts[i][k] || 0) + r.n; who.add(k);
+    }
+    const order = [...inkOrder.filter((n) => who.has(n) && slot(n) !== "o"), ...(who.has("Other AIs") ? ["Other AIs"] : []), ...(who.has("You") ? ["You"] : [])];
+    const W = span > 7 ? 1000 : 360, H = span > 7 ? 200 : 170, top = 18, base = H - 24, bw = span > 7 ? 34 : 30, gap = (W - bw * span) / span;
+    const max = Math.max(1, ...counts.map((c) => Object.values(c).reduce((a, b) => a + b, 0)));
+    const bars = days.map((d, i) => {
+      const x = gap / 2 + i * (bw + gap);
+      let y = base; const parts = [];
+      const total = Object.values(counts[i]).reduce((a, b) => a + b, 0);
+      for (const n of order) {
+        const v = counts[i][n]; if (!v) continue;
+        const h = Math.max(3, (v / max) * (base - top));
+        parts.push(sv("rect", { x, y: y - h, width: bw, height: Math.max(1, h - 2), rx: 3, class: "m" + (n === "Other AIs" ? "o" : slot(n)) },
+          tip(n + " · " + plural(v, "change", "changes") + " · " + d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" }))));
+        y -= h;
+      }
+      const label = i === span - 1 ? "Today" : span > 7 ? String(d.getDate()) : d.toLocaleDateString(undefined, { weekday: "short" });
+      return sv("g", {}, parts,
+        total ? sv("text", { x: x + bw / 2, y: y - 5, "text-anchor": "middle", class: "bar-total" }, String(total)) : null,
+        sv("text", { x: x + bw / 2, y: H - 6, "text-anchor": "middle", class: "bar-day" + (i === span - 1 ? " today" : "") }, label));
+    });
+    const sum = counts.reduce((a, c) => a + Object.values(c).reduce((x, y) => x + y, 0), 0);
+    return panel("act-title-" + span, span > 7 ? "Last two weeks" : "This week", plural(sum, "change", "changes"),
+      span > 7 ? null : el("a", { href: "#activity" }, "Activity"), "act-panel", [
+        sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "act-chart", role: "img", "aria-label": "Changes per day, by AI." },
+          sv("line", { x1: 0, x2: W, y1: base + 0.5, y2: base + 0.5, class: "axis" }), bars),
+        el("p", { class: "act-key" }, order.map((n) => el("span", { class: "key-item" },
+          el("span", { class: "key-sq m" + (n === "Other AIs" ? "o" : slot(n)) }), n === "Other AIs" ? "Other AIs" : sig(n))))]);
+  }
+
+  // ---------- Projects: the latest in the spotlight, the rest by their pulse ----------
+  // Each change says which project it belongs to (the engine follows renames). An older server doesn't,
+  // so fall back to the project's name in the change's summary.
+  const ofProject = (c, w) => (c.work !== undefined ? same(c.work, w.name) : (c.summary || "").toLowerCase().includes(w.name.toLowerCase()));
+  const projectChanges = (w) => state.changes.filter((c) => ofProject(c, w));
+  const projectDaily = (w) => dailyRows().filter((r) => same(r.work, w.name));
+  const lastAt = (w) => { const ch = projectChanges(w); return ch.length ? ch[0].at : w.changed_at || ""; };
+  const idleDays = (w) => { const t = lastAt(w); return t ? Math.floor((Date.now() - Date.parse(t)) / 86400000) : null; };
+  function pulse(rows, span) {   // one bar per day: how much happened to this project
+    span = span || 14;
+    const start = midnight(new Date()); start.setDate(start.getDate() - (span - 1));
+    const index = {};
+    for (let i = 0; i < span; i++) { const d = new Date(start); d.setDate(d.getDate() + i); index[isoDay(d)] = i; }
+    const counts = Array(span).fill(0);
+    for (const r of rows) { const i = index[r.day]; if (i !== undefined) counts[i] += r.n; }
+    const max = Math.max(3, ...counts), W = span * 10, H = 30, total = counts.reduce((a, b) => a + b, 0);
+    return sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "pulse", role: "img", "aria-label": plural(total, "change", "changes") + " in the last two weeks" },
+      counts.map((n, i) => {
+        const d = new Date(start); d.setDate(d.getDate() + i);
+        const h = n ? Math.max(5, (n / max) * (H - 2)) : 2;
+        return sv("rect", { x: i * 10 + 1.5, y: H - h, width: 7, height: h, rx: n ? 2 : 1, class: n ? "on" + (i === span - 1 ? " today" : "") : "off" },
+          tip(d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + plural(n, "change", "changes")));
+      }));
+  }
+  function spotlight(w, label) {
+    const b = projectBits(w), steps = w.steps || [], ch = projectChanges(w);
+    const n = b.next ? daysUntil(b.next.day) : null;
+    return el("a", { class: "spot", href: "#project/" + w.id },
+      el("div", { class: "spot-main" },
+        el("p", { class: "spot-eyebrow" }, label),
+        el("h2", { class: "spot-name" }, w.name),
+        steps.length ? el("ol", { class: "spot-steps" }, steps.map((s, i) => el("li", { class: i === 0 ? "first" : "" },
+          el("span", { class: "spot-n" }, String(i + 1)), el("span", {}, s))))
+          : el("p", { class: "spot-none" }, "Nothing up next yet"),
+        el("p", { class: "spot-foot" }, aiDots(b.ais.filter((x) => x !== "You")),
+          [b.notes.length ? plural(b.notes.length, "memory", "memories") : null, ch.length ? "last change " + ago(ch[0].at) + " by" : null].filter(Boolean).join(" · "),
+          ch.length ? [" ", sig(ch[0].by)] : null)),
+      el("div", { class: "spot-side" },
+        b.next ? el("div", { class: "spot-count" + (n <= 7 ? " soon" : "") },
+          el("span", { class: "cd-num" }, n === 0 ? "Today" : String(n)),
+          el("span", { class: "cd-unit" }, n === 0 ? b.next.what : (n === 1 ? "day to " : "days to ") + b.next.what))
+          : el("p", { class: "spot-nodate" }, "No date set"),
+        el("div", { class: "spot-pulse" }, el("p", { class: "label" }, "Last two weeks"), pulse(projectDaily(w)))));
+  }
+  function pulseRow(w, quiet) {
+    const b = projectBits(w), idle = idleDays(w);
+    const why = w.status === "Parked" ? "Parked" : "Active";
+    return el("a", { class: "prow" + (quiet ? " quiet" : ""), href: "#project/" + w.id },
+      el("span", { class: "prow-main" },
+        el("span", { class: "prow-name" }, w.name),
+        el("span", { class: "prow-next" }, quiet ? why + (idle >= 7 ? " · no change in " + plural(idle, "day", "days") : "") : (w.next_step || "Nothing up next"))),
+      pulse(projectDaily(w)),
+      b.next ? el("span", { class: "prow-date" }, el("span", { class: "prow-what" }, b.next.what),
+        el("span", { class: "when" + (daysUntil(b.next.day) <= 7 ? " soon" : "") }, whenLabel(b.next.day))) : el("span", { class: "prow-date label" }, "No date"),
+      aiDots(b.ais.filter((x) => x !== "You")));
+  }
+  function pulseGroup(id, title, list, quiet) {
+    return el("section", { class: "pgroup", "aria-labelledby": id },
+      el("div", { class: "prow-head" }, el("h2", { id }, title), el("span", { class: "label" }, "Last two weeks"), el("span", { class: "label" }, "Next date"), el("span")),
+      list.map((w) => pulseRow(w, quiet)));
+  }
+
+  // ---------- a project's page: where it's heading, what your AIs know, what happened ----------
+  function currentProject() { return state && state.work.find((w) => w.id === projectId); }
+  function renderProject() {   // its name is the page title, edited in place (see render)
+    const w = currentProject();
+    if (!w) return [empty("This project isn’t here", "It may have been deleted. Projects keeps deleted projects for 30 days under Recently deleted."),
+      el("p", { class: "back" }, el("a", { href: "#work" }, "All projects"))];
+    const b = projectBits(w), steps = w.steps || [];
+    const setSteps = (list, message) => save("PATCH", "work/" + w.id, { steps: list }, message);
+    const path = el("ol", { class: "path", "aria-label": "Steps for " + w.name },
+      steps.map((s, i) => el("li", { class: "path-step" + (i === 0 ? " first" : "") },
+        el("button", { class: "path-node", type: "button", "aria-label": "Mark done: " + s, title: "Mark done",
+          onclick: (e) => markDone(e.currentTarget.closest(".path-step"), s, () => setSteps(steps.filter((_x, j) => j !== i), "Done: " + s)) },
+          el("span", { class: "path-n" }, String(i + 1)), icon("done")),
+        el("div", { class: "path-body" }, i < 2 ? el("p", { class: "path-label" }, i === 0 ? "Up next" : "Then") : null,
+          cell(s, (v) => setSteps(v ? steps.map((x, j) => (j === i ? v : x)) : steps.filter((_x, j) => j !== i), "Saved."),
+            { label: (i === 0 ? "Up next" : "Step " + (i + 1)) + " for " + w.name, multiline: true })))),
+      steps.length < MAX_STEPS ? el("li", { class: "path-step add" }, el("span", { class: "path-node ghost", "aria-hidden": "true" }, icon("plus")),
+        el("div", { class: "path-body" }, cell("", (v) => (v ? setSteps([...steps, v], "Step added.") : true),
+          { label: "New step for " + w.name, placeholder: steps.length ? "Add a step" : "What’s up next?" }))) : null);
+    const n = b.next ? daysUntil(b.next.day) : null;
+    const count = b.next
+      ? el("div", { class: "story-count" + (n <= 7 ? " soon" : "") }, el("span", { class: "cd-num" }, n === 0 ? "Today" : String(n)),
+          el("span", { class: "cd-text" }, el("span", { class: "cd-unit" }, n === 0 ? "" : n === 1 ? "day to go" : "days to go"),
+            el("span", { class: "cd-what" }, b.next.what), el("span", { class: "cd-day" }, niceDay(b.next.day))))
+      : el("div", { class: "story-count none" }, el("span", { class: "cd-what" }, "No date yet"),
+          el("span", { class: "cd-day" }, "A launch, deadline or call gives this project a countdown."),
+          el("button", { class: "btn", type: "button", onclick: () => openNew("date") }, icon("plus"), "Add a date"));
+    const hero = el("section", { class: "story-hero", "aria-label": "Where " + w.name + " stands" },
+      el("div", { class: "story-main" },
+        el("div", { class: "story-meta" }, statusPill(w.status, (v) => save("PATCH", "work/" + w.id, { status: v }, "Status set to " + v + "."), "Status"),
+          b.ais.length ? el("span", { class: "story-ais" }, "Worked on by ", b.ais.map((x, i) => [i ? ", " : "", sig(x)])) : null),
+        path),
+      count);
+
+    const cards = b.notes.map((m) => el("div", { class: "mcard", "data-key": "pnote-" + m.id },
+      cell(m.note, (v) => save("PATCH", "project-note/" + m.id, { note: v }, "Saved."), { label: "Memory", required: true, multiline: true }),
+      el("div", { class: "mc-foot" }, m.by ? sig(m.by) : el("span", {}), el("span", { class: "mc-when" }, m.changed_at ? ago(m.changed_at) : ""),
+        delBtn("Delete memory", m.note, () => save("DELETE", "project-note/" + m.id, null, "Memory removed.")))));
+    const adder = el("div", { class: "mcard add" }, cell("", (v) => (v ? save("POST", "project-note", { work: w.name, note: v }, "Memory added.") : true),
+      { label: "New memory for " + w.name, multiline: true, placeholder: "A decision, link or constraint every AI should know about " + w.name + "." }));
+    const knows = el("section", { class: "story-col", "aria-labelledby": "knows-title" },
+      el("div", { class: "col-head" }, el("h2", { id: "knows-title" }, "What your AIs know"), el("span", { class: "meta" }, b.notes.length ? String(b.notes.length) : "")),
+      el("div", { class: "mcards one" }, cards, adder));
+
+    const history = page && page.work && page.work.id === w.id ? page.history : null;
+    const maps = history ? undoMap(history) : null;
+    const dateNode = (d) => {
+      const k = daysUntil(d.day);
+      return el("div", { class: "tl-item date" + (k < 0 ? " past" : k <= 7 ? " soon" : ""), "data-key": "date-" + d.id },
+        el("span", { class: "tl-dot", "aria-hidden": "true" }),
+        dateCell(d.day, (v) => save("PATCH", "date/" + d.id, { day: v }, "Moved."), { label: "Date of " + d.what, required: true }),
+        el("div", { class: "tl-body" }, cell(d.what, (v) => save("PATCH", "date/" + d.id, { what: v }, "Saved."), { label: "Event on " + d.day, required: true }),
+          el("p", { class: "tl-sub" }, el("span", { class: "when" + (k < 0 ? " past" : k <= 7 ? " soon" : "") }, whenLabel(d.day)), d.by ? [" · ", sig(d.by)] : null)),
+        delBtn("Delete " + d.what, d.what, () => save("DELETE", "date/" + d.id, null, "Removed " + d.what + ".")));
+    };
+    const past = history === null ? null : [
+      ...history.map((c) => ({ t: c.at, node: el("div", { class: "tl-item log" }, el("span", { class: "tl-dot key-sq round m" + slot(c.by), "aria-hidden": "true" }), entry(c, maps)) })),
+      ...b.dates.filter((d) => daysUntil(d.day) < 0).map((d) => ({ t: d.day + "T23:59:00", node: dateNode(d) }))]
+      .sort((x, y) => (x.t < y.t ? 1 : -1)).map((x) => x.node);
+    const first = history ? history.filter((c) => (c.room === "Projects" || c.room === "Work") && /^Added /.test(c.summary || "")).pop() : null;
+    const timeline = el("section", { class: "story-col", "aria-labelledby": "tl-title" },
+      el("div", { class: "col-head" }, el("h2", { id: "tl-title" }, "Timeline")),
+      el("div", { class: "tl" },
+        b.upcoming.slice().reverse().map(dateNode),
+        el("button", { class: "tl-add", type: "button", onclick: () => openNew("date") }, icon("plus"), "Add a date"),
+        el("div", { class: "tl-today" }, "Today"),
+        past === null ? skeleton() : past.length ? past : el("p", { class: "tl-empty" }, "Nothing has happened yet. Every change to this project shows up here, signed."),
+        first ? el("div", { class: "tl-start" }, "Started " + niceDay(first.at.slice(0, 10))) : null));
+    return [hero, el("div", { class: "story-body" }, knows, timeline),
+      recentlyDeleted((g) => g.table === "project_notes" && same(g.item && g.item.work, w.name), "gone-pnotes")];
+  }
+
+  // ---------- pages ----------
   function renderOverview() {
     const maps = undoMap(state.changes);
     const isEmpty = !state.about.length && !state.work.length && !state.dates.length;
     const newest = state.changes[0];
     const since = look && newest && look.id <= newest.id ? look : null;
     const fresh = since ? state.changes.filter((c) => c.id > since.id && c.by !== "You") : [];
-    const items = fresh.length ? fresh.slice(0, 6) : state.changes.slice(0, 5);
-    const log = section("log-title", fresh.length ? "Since you last looked" : "Latest changes",
+    const items = fresh.length ? fresh.slice(0, 5) : state.changes.slice(0, 4);
+    const log = panel("log-title", fresh.length ? "Since you last looked" : "Latest changes",
       since ? (fresh.length ? sinceWhen(since.at) : "Nothing new since you last looked " + sinceWhen(since.at)) : null,
-      el("a", { href: "#activity" }, "All activity"),
+      el("a", { href: "#activity" }, "All activity"), "log-panel",
       items.length ? el("div", { class: "log" }, items.map((c) => entry(c, maps)))
         : empty("No changes yet", "Tell any connected AI about your work. Every change it makes shows up here, signed with its name."));
     if (isEmpty) return [setupPanel(), state.changes.length ? log : null];
-
-    const upcoming = state.dates.filter((d) => daysUntil(d.day) >= 0);
-    const coming = section("coming-title", "Coming up", null, el("a", { href: "#dates" }, "All dates"),
-      upcoming.length ? el("div", {}, upcoming.slice(0, 6).map((d) => el("div", { class: "row date-row" },
-        el("span", { class: "day" }, dayLabel(d.day)), el("span", { class: "title" }, d.what),
-        el("span", { class: "when" + (daysUntil(d.day) <= 7 ? " soon" : "") }, whenLabel(d.day)))))
-        : empty("No dates coming up", "Tell any AI a date, like “the launch is on 22 November”, or add one in Dates."));
-
-    const active = state.work.filter((w) => w.status === "Active");
-    const progress = section("progress-title", "In progress", null, el("a", { href: "#work" }, "All projects"),
-      active.length ? el("div", {}, active.map((w) => el("div", { class: "row work-row" },
-        el("span", { class: "title" }, el("a", { class: "title-link", href: "#project/" + w.id }, w.name)),
-        el("span", { class: "next" }, w.next_step ? [el("span", { class: "label" }, "Up next: "), w.next_step] : el("span", { class: "label" }, "Nothing up next")))))
-        : empty("Nothing in progress", "Tell any AI what you’re working on, or add a project in Projects."));
-    return [log, el("div", { class: "two" }, coming, progress)];
+    return [
+      el("div", { class: "ov-row" }, log, syncPanel()),
+      el("div", { class: "ov-row" }, twoWeeks(), activity(7))];
   }
 
   function renderWork() {
+    const mode = layouts.work === "table" ? "table" : "spotlight";
+    const bar = el("div", { class: "page-bar" }, toggle("work", [["spotlight", "Spotlight"], ["table", "Table"]], mode));
+    if (mode === "table") return [bar, renderWorkTable()];
+    const gone = recentlyDeleted((g) => g.table === "work", "gone-work");
+    if (!state.work.length) return [bar, empty("No projects yet", "Tell any AI what you’re working on, or add a project with New."), gone];
+    const newest = (a, b) => (lastAt(b) > lastAt(a) ? 1 : -1);
+    const open = state.work.filter((w) => w.status !== "Done");
+    const stale = (w) => w.status === "Active" && idleDays(w) >= 14;   // the Brain's rule: 14 days without a change may be stale
+    const spots = open.filter((w) => w.status === "Active" && !stale(w)).sort(newest).slice(0, 1), label = "Most recent";   // the project worked on last
+    const rest = open.filter((w) => !spots.includes(w));
+    const moving = rest.filter((w) => w.status === "Active" && !stale(w)).sort(newest);
+    const quiet = rest.filter((w) => w.status === "Parked" || stale(w)).sort(newest);
+    const done = state.work.filter((w) => w.status === "Done");
+    return [bar,
+      spots.map((w) => spotlight(w, label)),
+      moving.length ? pulseGroup("moving-title", spots.length ? "Also moving" : "Moving", moving, false) : null,
+      quiet.length ? pulseGroup("quiet-title", "Quiet", quiet, true) : null,
+      done.length ? el("p", { class: "done-line" }, el("span", { class: "label" }, "Done "), done.map((w, i) => [i ? ", " : "", el("a", { href: "#project/" + w.id }, w.name)])) : null,
+      gone];
+  }
+
+  function renderDates() {
+    const mode = layouts.dates || "calendar";
+    const bar = el("div", { class: "page-bar" }, toggle("dates", [["calendar", "Calendar"], ["list", "List"]], mode));
+    if (mode === "list") return [bar, renderDatesList()];
+    return [bar, el("div", { class: "dates-top" }, countdown(), comingUp()), monthCalendar(),
+      recentlyDeleted((g) => g.table === "dates", "gone-dates")];
+  }
+
+  function renderAbout() {
+    const last = [...state.about].filter((n) => n.changed_at).sort((a, b) => (a.changed_at < b.changed_at ? 1 : -1))[0];
+    const writers = [...new Set(state.about.map((n) => n.by).filter(Boolean))];
+    const summary = el("div", { class: "about-sum" },
+      el("p", { class: "about-big" }, state.about.length ? plural(state.about.length, "thing every AI knows about you", "things every AI knows about you") : "Nothing yet"),
+      el("p", { class: "about-meta" }, writers.length ? ["Written by ", writers.map((n, i) => [i ? ", " : "", sig(n)])] : "Tell any AI how you like to work, or add it here.",
+        last ? " · last changed " + ago(last.changed_at) : ""));
+    const cards = state.about.map((n) => el("div", { class: "mcard", "data-key": "note-" + n.id },
+      cell(n.note, (v) => save("PATCH", "note/" + n.id, { note: v }, "Saved."), { label: "Memory", required: true, multiline: true }),
+      el("div", { class: "mc-foot" }, n.by ? sig(n.by) : el("span", {}), el("span", { class: "mc-when" }, n.changed_at ? ago(n.changed_at) : ""),
+        delBtn("Delete memory", n.note, () => save("DELETE", "note/" + n.id, null, "Memory removed.")))));
+    const adder = el("div", { class: "mcard add" },
+      cell("", (v) => save("POST", "note", { note: v }, "Memory added."), { label: "New memory", multiline: true,
+        placeholder: "Add something every AI should know: how you work, what you prefer, a rule." }));
+    return [summary, el("div", { class: "mcards" }, cards, adder), recentlyDeleted((g) => g.table === "about", "gone-about")];
+  }
+
+  function renderActivity() { return [activity(14), el("div", { class: "act-log" }, renderActivityLog())]; }
+
+  function renderAIs() {
+    const rows = aiNames().map((n) => {
+      const r = syncRow(n);
+      return el("div", { class: "ai-card" }, r.ring,
+        el("div", { class: "ai-card-text" }, sig(n),
+          el("p", { class: "sync-status" + (r.missed ? " behind" : "") }, r.status),
+          el("p", { class: "sync-when" }, [r.reader ? "read " + ago(r.reader.at) : null, r.wrote ? "wrote " + ago(r.wrote.at) : null].filter(Boolean).join(" · "))),
+        el("a", { class: "ai-link", href: "#activity", onclick: () => { agentFilter = n; } }, "See its changes"));
+    });
+    return [rows.length ? el("div", { class: "ai-cards" }, rows) : empty("No AIs yet", "Connect an AI app or a Hermes agent. Each one shows up here once it reads or writes your mind."),
+      whatTheySee()];
+  }
+
+  // ---------- Settings: who can use your mind, your data, how Mindhall looks ----------
+  // The hosted app answers api/account (mindhall-cloud app/web.py); a self-hosted server doesn't, so the
+  // page shows what applies there instead.
+  let account;                 // undefined: not asked yet · null: no accounts here (self-hosted) · object: hosted
+  let accountAsked = false;
+  async function loadAccount() {
+    if (accountAsked) return;
+    accountAsked = true;
+    try { account = await api("GET", "account"); } catch (e) { account = null; }
+    if (view === "settings") render();
+  }
+  async function connectionAct(c, action, extra, message) {
+    let ok = true;
+    try { await api("POST", "connection", Object.assign({ client_id: c.client_id, action }, extra || {})); toast(message); }
+    catch (e) { toast(e.message, null, true); ok = false; }
+    accountAsked = false;
+    await loadAccount();
+    return ok;
+  }
+
+  // Appearance is a per-viewer choice, so it lives in this browser only.
+  const THEME_KEY = "mindhall:theme";
+  const storedTheme = () => { try { return localStorage.getItem(THEME_KEY) || ""; } catch (e) { return ""; } };
+  function applyTheme(t) {
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+  }
+  if (storedTheme()) applyTheme(storedTheme());
+  function setTheme(t) {
+    try { if (t === "system") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, t); } catch (e) {}
+    applyTheme(t);
+    render();
+  }
+  function themeArt(mode) {
+    return el("span", { class: "tc-mini " + mode }, el("span", { class: "tc-rail" }),
+      el("span", { class: "tc-main" }, el("span", { class: "tc-line l1" }), el("span", { class: "tc-line l2" }), el("span", { class: "tc-line l3" })));
+  }
+  function themeCard(value, label, current) {
+    return el("button", { type: "button", class: "theme-card", "aria-pressed": String(current === value), onclick: () => setTheme(value) },
+      el("span", { class: "tc-art", "aria-hidden": "true" }, value === "system" ? [themeArt("light"), themeArt("dark")] : themeArt(value)),
+      el("span", { class: "tc-label" }, label));
+  }
+
+  // The person's time zone: "today" and the times AIs are given follow it (engine settings table).
+  // Browsers still report a few places by their old names; show and save the current ones.
+  const MODERN = { "Asia/Calcutta": "Asia/Kolkata", "Asia/Saigon": "Asia/Ho_Chi_Minh", "Asia/Katmandu": "Asia/Kathmandu",
+    "Asia/Rangoon": "Asia/Yangon", "Europe/Kiev": "Europe/Kyiv" };
+  const modern = (z) => MODERN[z] || z;
+  const browserZone = (() => { try { return modern(Intl.DateTimeFormat().resolvedOptions().timeZone || ""); } catch (e) { return ""; } })();
+  let zoneList = null;
+  function zoneOffset(zone) {
+    try {
+      const part = new Intl.DateTimeFormat("en-GB", { timeZone: zone, timeZoneName: "shortOffset" }).formatToParts(new Date()).find((p) => p.type === "timeZoneName");
+      return part ? part.value.replace("GMT", "GMT ").replace(/ $/, "") : "";
+    } catch (e) { return ""; }
+  }
+  function zones() {
+    if (!zoneList) {
+      let names = [];
+      try { names = Intl.supportedValuesOf("timeZone"); } catch (e) { names = [browserZone].filter(Boolean); }
+      zoneList = [...new Set(names.map(modern))].sort().map((z) => [z, z.replace(/_/g, " ") + (zoneOffset(z) ? " (" + zoneOffset(z) + ")" : "")]);
+    }
+    return zoneList;
+  }
+  async function saveZone(zone, quiet) {
+    try {
+      const s = await api("PATCH", "settings", { time_zone: zone });
+      if (state) state.settings = s;
+      if (!quiet) toast(zone ? "Time zone set to " + zone.replace(/_/g, " ") + "." : "Time zone cleared.");
+      return true;
+    } catch (e) { if (!quiet) toast(e.message, null, true); return false; }
+  }
+  let zoneTried = false;
+  function autoTimeZone() {   // once: a mind with no time zone takes this browser's, so "today" is right for AIs
+    if (zoneTried || !state || !state.settings || state.settings.time_zone || !browserZone) return;
+    zoneTried = true;
+    saveZone(browserZone, true).then((ok) => { if (ok && view === "settings") render(); });
+  }
+  function zonePicker() {
+    const current = modern((state.settings && state.settings.time_zone) || "");
+    const select = el("select", { class: "zone-select", "aria-label": "Your time zone" },
+      current ? null : el("option", { value: "", selected: true }, "Not set (the server’s clock)"),
+      zones().map(([z, label]) => el("option", { value: z, selected: z === current }, label)));
+    select.addEventListener("change", async () => { if (await saveZone(select.value)) render(); });
+    return select;
+  }
+  const switchBtn = (on, label, onChange) => el("button", { type: "button", class: "switch", role: "switch", "aria-checked": String(on), "aria-label": label,
+    onclick: () => onChange(!on) }, el("span", { class: "switch-knob", "aria-hidden": "true" }));
+  const extLink = (href, text) => el("a", { class: "btn", href, target: "_blank", rel: "noreferrer noopener" }, text);
+
+  const srow = (title, text, control, cls) => el("div", { class: "srow" + (cls ? " " + cls : "") },
+    el("div", { class: "srow-text" }, el("p", { class: "srow-title" }, title), text ? el("p", { class: "srow-sub" }, text) : null),
+    control ? el("div", { class: "srow-ctl" }, control) : null);
+  const stat = (n, label) => el("div", { class: "stat" }, el("span", { class: "stat-n" }, String(n)), el("span", { class: "stat-l" }, label));
+
+  function connectionRow(c) {
+    const r = syncRow(c.name);
+    if (c.disconnected) {
+      return el("div", { class: "conn off" }, el("span", { class: "conn-ring" }, r.ring),
+        el("div", { class: "conn-text" }, el("p", { class: "conn-name" }, sig(c.name), el("span", { class: "tag" }, "Disconnected")),
+          el("p", { class: "conn-sub" }, c.revoked ? "Its access was removed. To use it again, connect it again from the app."
+            : "Refused here. Allow it again, or remove the connector in the app.")),
+        el("div", { class: "conn-ctl" }, c.revoked
+          ? el("button", { class: "btn", type: "button", onclick: () => connectionAct(c, "forget", null, "Removed from the list.") }, "Remove from list")
+          : el("button", { class: "btn", type: "button", onclick: () => connectionAct(c, "allow", null, c.name + " can use your mind again.") }, "Allow again")));
+    }
+    const name = cell(c.name, (v) => connectionAct(c, "rename", { name: v }, "Renamed."), { label: "Name of this app", required: true, cls: "conn-rename" });
+    name.style.color = inkFor(c.name);   // its signature ink (a fixed token, never data)
+    name.size = Math.max(4, c.name.length + 1);   // as wide as the name, so "Verified" sits beside it
+    const access = el("div", { class: "seg", role: "group", "aria-label": "What " + c.name + " can do" },
+      [["read_write", "Read and change"], ["read_only", "Read-only"]].map(([k, label]) =>
+        el("button", { type: "button", "aria-pressed": String((k === "read_only") === c.read_only), onclick: () => {
+          if ((k === "read_only") !== c.read_only) connectionAct(c, k, null, k === "read_only" ? c.name + " is read-only now." : c.name + " can read and change again.");
+        } }, label)));
+    return el("div", { class: "conn" }, el("span", { class: "conn-ring" }, r.ring),
+      el("div", { class: "conn-text" },
+        el("div", { class: "conn-name" }, name, c.verified ? el("span", { class: "tag", title: "Recognised by its official sign-in address" }, "Verified") : null),
+        el("p", { class: "conn-sub" }, "Last used " + ago(c.last_used) + (r.reader ? " · " + r.status : ""))),   // "up to date" only once it has read
+      el("div", { class: "conn-ctl" }, access,
+        el("button", { class: "btn", type: "button", onclick: () => ask("Disconnect " + c.name + "?",
+          c.name + " loses access straight away, including any sign-in it already has. You can allow it again from here.", "Disconnect",
+          () => connectionAct(c, "disconnect", null, c.name + " is disconnected.")) }, "Disconnect")));
+  }
+  function readerRow(n) {   // self-hosted: who has used the mind, nothing to switch
+    const r = syncRow(n);
+    return el("div", { class: "conn" }, el("span", { class: "conn-ring" }, r.ring),
+      el("div", { class: "conn-text" }, el("p", { class: "conn-name" }, sig(n)),
+        el("p", { class: "conn-sub" }, [r.reader ? "Read " + ago(r.reader.at) : null, r.wrote ? "wrote " + ago(r.wrote.at) : null, r.status].filter(Boolean).join(" · "))));
+  }
+
+  function downloadJSON() {   // self-hosted: the mind as the page already has it, saved by the browser
+    const data = { exported_at: new Date().toISOString(), about: state.about, projects: state.work, project_memories: state.project_notes || [],
+      dates: state.dates, changes: state.changes };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    const a = el("a", { href: url, download: "mindhall-" + isoDay(new Date()) + ".json" });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // A typed word unlocks each irreversible action. Kept across redraws, so a poll never wipes what you typed.
+  const typed = {};
+  function typedConfirm(word, label, action) {
+    if (!typed[word]) {
+      const box = el("input", { class: "confirm-input", type: "text", placeholder: "Type " + word, "aria-label": "Type " + word + " to confirm", autocomplete: "off" });
+      const btn = el("button", { class: "btn danger", type: "button", disabled: true, onclick: async () => {
+        btn.disabled = true;
+        try { await action(box.value); box.value = ""; }
+        catch (e) { toast(e.message, null, true); }
+        btn.disabled = box.value.trim().toLowerCase() !== word;
+      } }, label);
+      box.addEventListener("input", () => { btn.disabled = box.value.trim().toLowerCase() !== word; });
+      typed[word] = [box, btn];
+    }
+    return typed[word];
+  }
+  const downloadFirst = (hosted) => hosted
+    ? el("a", { class: "btn", href: base + "api/export.json", download: "" }, "Download first")
+    : el("button", { class: "btn", type: "button", onclick: downloadJSON }, "Download first");
+
+  // Pause saving: every AI can read, none can write (engine settings; the tools check it).
+  async function setPaused(on) {
+    try { const s = await api("PATCH", "settings", { paused: on }); if (state) state.settings = s; toast(on ? "Saving is paused for every AI." : "Your AIs can save again."); }
+    catch (e) { toast(e.message, null, true); }
+    render();
+  }
+  function settingsHooks() {   // runs on every render: the time zone once, and the rail's "Saving paused" note
+    autoTimeZone();
+    const note = document.getElementById("paused-note");
+    if (note) note.hidden = !(state && state.settings && state.settings.paused);
+  }
+
+  function renderSettings() {
+    if (account === undefined) loadAccount();
+    const hosted = !!account;
+    const live = hosted ? account.connections.filter((c) => !c.disconnected) : [];
+
+    const paused = !!(state.settings && state.settings.paused);
+    const pauseRow = srow("Pause saving", paused
+      ? "Saving is paused. Every AI can still read your mind, but none can change it. You can still edit everything here."
+      : "Stop every AI from changing your mind, for example while you travel or try something out. They can still read it.",
+      el("span", { class: "switch-row" }, el("span", { class: "switch-state" + (paused ? " on" : "") }, paused ? "Paused" : "Saving"),
+        switchBtn(paused, "Pause saving for every AI", setPaused)), "pause-row");
+    let aisBody;
+    if (account === undefined) aisBody = skeleton();
+    else if (hosted) aisBody = [
+      account.connections.length ? account.connections.map(connectionRow)
+        : el("p", { class: "srow-sub pad" }, "No AI has connected yet. Add the address below to your first AI."),
+      el("div", { class: "connect" },
+        el("p", { class: "srow-title" }, "Connect another AI"),
+        el("p", { class: "srow-sub" }, "Add this address as a connector in ChatGPT, Claude or any app that supports MCP. The app asks you to sign in and choose what it may do."),
+        el("div", { class: "addr" }, el("span", { class: "addr-text" }, account.mcp_url),
+          el("button", { class: "btn", type: "button", onclick: async () => {
+            try { await navigator.clipboard.writeText(account.mcp_url); toast("Address copied."); }
+            catch (e) { toast("Couldn’t copy. Select the address and copy it.", null, true); }
+          } }, "Copy")))];
+    else aisBody = [
+      aiNames().length ? aiNames().map(readerRow) : el("p", { class: "srow-sub pad" }, "No AI has read or written yet."),
+      srow("Who can use your mind", ["On your own server, any app with your secret address can read and change your mind. To cut every app off, change the secret in your server’s settings. ",
+        el("a", { href: "https://github.com/jai-srinivas/mindhall/wiki/Connect-AI-apps", target: "_blank", rel: "noreferrer noopener" }, "How to connect AI apps"), "."])];
+
+    const theme = storedTheme() || "system";
+    const memories = state.about.length + (state.project_notes || []).length;
+    const gone = recentlyDeleted(() => true, "gone-all");
+    const sections = [
+      panel("set-ais", "Your AIs", paused ? "saving paused" : hosted ? plural(live.length, "app connected", "apps connected") : account === null ? "on your own server" : null,
+        el("a", { href: "#ais" }, "What they see"), "set-panel", [pauseRow, aisBody]),
+      panel("set-look", "Appearance", null, null, "set-panel", [
+        el("p", { class: "srow-sub" }, "Only changes how Mindhall looks in this browser."),
+        el("div", { class: "theme-cards", role: "group", "aria-label": "Theme" },
+          themeCard("system", "Match my device", theme), themeCard("light", "Light", theme), themeCard("dark", "Dark", theme)),
+        srow("Time zone", ["What counts as “today” for you and your AIs, and the times they’re given. ",
+          browserZone ? "This browser is on " + browserZone.replace(/_/g, " ") + "." : ""], zonePicker())]),
+      panel("set-data", "Your data", null, null, "set-panel", [
+        el("div", { class: "stats" }, stat(memories, memories === 1 ? "memory" : "memories"), stat(state.work.length, state.work.length === 1 ? "project" : "projects"),
+          stat(state.dates.length, state.dates.length === 1 ? "date" : "dates"), stat(state.change_count || state.changes.length, "signed changes")),
+        srow("Download everything", "Every memory, project and date, with the full history of who changed what.",
+          hosted ? [el("a", { class: "btn", href: base + "api/export.json", download: "" }, "Download as JSON"),
+                    el("a", { class: "btn", href: base + "api/export.db", download: "" }, "Database file")]
+                 : el("button", { class: "btn", type: "button", onclick: downloadJSON }, "Download as JSON")),
+        hosted
+          ? srow("Usage data", "Which tools your AIs call, from which apps, and whether the calls work. Never what’s in your mind. It helps us fix what breaks.",
+              el("span", { class: "switch-row" }, el("span", { class: "switch-state" }, account.usage_data ? "Shared" : "Off"),
+                switchBtn(!!account.usage_data, "Share usage data", async (on) => {
+                  try { await api("POST", "usage-data", { on }); toast(on ? "Usage data is shared." : "Usage data is off."); } catch (e) { toast(e.message, null, true); }
+                  accountAsked = false; loadAccount();
+                })))
+          : srow("Usage data", "Self-hosted Mindhall sends no usage data anywhere."),
+        srow("Where it lives", hosted
+          ? "Your mind is kept by Mindhall, in its own file, with backups kept for up to 30 days. When an AI reads it, what it reads is also handled by that AI’s company, under their terms."
+          : "Your mind is one file on your own server. Nothing leaves it except what your connected AIs read, which is also handled by each AI’s company, under their terms."),
+        gone || srow("Recently deleted", "Nothing deleted in the last 30 days. Deleted memories, projects and dates wait here for 30 days before they’re gone.")]),
+      hosted ? panel("set-account", "Account", null, null, "set-panel", [
+        srow("Signed in as " + (account.email || "you"),
+          [(account.sign_ins || []).length ? "With " + account.sign_ins.join(" or ") : null,
+            account.member_since ? "Member since " + niceDay(account.member_since.slice(0, 10)) : null].filter(Boolean).join(" · "),
+          el("button", { class: "btn", type: "button", onclick: async () => {
+            try { const r = await api("POST", "logout"); location.href = r.url; } catch (e) { toast(e.message, null, true); }
+          } }, "Sign out everywhere")),
+        (account.sign_ins || []).includes("Email and password") ? srow("Password", "We’ll email you a link to set a new one.",
+          el("button", { class: "btn", type: "button", onclick: async () => {
+            try { await api("POST", "password-reset"); toast("Check your email for a link to set a new password."); }
+            catch (e) { toast(e.message, null, true); }
+          } }, "Change password")) : null,
+        ]) : null,
+      panel("set-help", "Help and about", null, null, "set-panel", [
+        hosted ? null : srow("Connect AI apps", "Step by step for ChatGPT, Claude, Codex and Hermes.",
+          extLink("https://github.com/jai-srinivas/mindhall/wiki/Connect-AI-apps", "Open the guide")),
+        hosted && account.support_email
+          ? srow("Get help", "Write to " + account.support_email + " and a person will reply.", el("a", { class: "btn", href: "mailto:" + account.support_email }, "Email support"))
+          : hosted ? null : srow("Get help", "Report a problem or ask a question on GitHub.", extLink("https://github.com/jai-srinivas/mindhall/issues", "Open GitHub")),
+        srow("Version", "Mindhall " + (state.version || "") + (hosted ? " · hosted" : account === null ? " · on your own server" : ""))]),
+      panel("set-danger", "Danger zone", null, null, "set-panel danger-panel", [
+        srow("Clear my mind", ["Erases every memory, project and date, and their history, for good. Your AIs stay connected and your settings stay. ",
+          "For two weeks, your AIs are told the mind was cleared, so they stop using what it said before.",
+          hosted ? " Encrypted backups made before now expire on their own within 30 days." : ""],
+          [downloadFirst(hosted), ...typedConfirm("clear", "Clear my mind", async (word) => {
+            await api("POST", "clear", { confirm: word });
+            toast("Your mind is cleared.");
+            await refresh(true);
+          })], "danger-row"),
+        hosted ? srow("Delete account", ["Deletes your account and your mind and cuts off every connected AI, right away. Encrypted backup copies can’t be removed early; they expire on their own within 30 days. This can’t be undone.",
+            account.recent_sign_in ? "" : " For your safety, sign in again first."],
+          account.recent_sign_in
+            ? [downloadFirst(true), ...typedConfirm("delete", "Delete my account", async (word) => {
+                const r = await api("POST", "delete-account", { confirm: word }); location.href = r.url; })]
+            : [downloadFirst(true), el("a", { class: "btn", href: base + "login?reauth=1&next=settings" }, "Sign in again")], "danger-row") : null])];
+    return el("div", { class: "settings" }, sections);
+  }
+
+  function renderWorkTable() {
     const head = el("div", { class: "tr head work-grid" }, el("div", {}, "Name"), el("div", {}, "Status"), el("div", {}, "Up next"),
       el("div", {}, "Signed"), el("div"));
     const rows = state.work.map((w) => el("div", { class: "tr work-grid", "data-key": "work-" + w.id },
@@ -867,7 +1858,7 @@
       const w = what.value.trim(); if (!w || !dayInput.value) { toast("Pick a date and name the event.", null, true); return false; }
       return save("POST", "date", { day: dayInput.value, what: w, work: work || "" }, "Added " + w + "."); });
   }
-  function renderDates() {
+  function renderDatesList() {
     const head = el("div", { class: "tr head date-grid" }, el("div", {}, "Date"), el("div", {}, "When"), el("div", {}, "Event"), el("div", {}, "Signed"), el("div"));
     const up = state.dates.filter((d) => daysUntil(d.day) >= 0), past = state.dates.filter((d) => daysUntil(d.day) < 0).reverse();
     return [el("div", { class: "table" }, head,
@@ -878,73 +1869,6 @@
       recentlyDeleted((g) => g.table === "dates", "gone-dates")];
   }
 
-  function renderAbout() {
-    const rows = state.about.map((n) => el("div", { class: "tr note-grid", "data-key": "note-" + n.id },
-      cell(n.note, (v) => save("PATCH", "note/" + n.id, { note: v }, "Saved."), { label: "Memory", required: true, multiline: true }),
-      byCell(n),
-      delBtn("Delete memory", n.note, () => save("DELETE", "note/" + n.id, null, "Memory removed."))));
-    const note = cell("", () => true, { label: "New memory", placeholder: "How you work, what you prefer, rules for your AIs", multiline: true });
-    const adder = addRow("note", "Add a memory", "note-grid", [note, el("div", { class: "by" })], async () => {
-      const v = note.value.trim(); if (!v) return false;
-      return save("POST", "note", { note: v }, "Memory added."); });
-    return [el("div", { class: "table" },
-      rows.length ? rows : empty("Nothing here yet", "Add how you like to work. Every AI will read it."),
-      adder),
-      recentlyDeleted((g) => g.table === "about", "gone-about")];
-  }
-
-  function currentProject() { return state && state.work.find((w) => w.id === projectId); }
-  function renderProject() {
-    const w = currentProject();
-    if (!w) return [empty("This project isn’t here", "It may have been deleted. Projects keeps deleted projects for 30 days under Recently deleted."),
-      el("p", { class: "back" }, el("a", { href: "#work" }, "All projects"))];
-    const props = el("dl", { class: "props" },
-      el("dt", {}, "Name"), el("dd", {}, cell(w.name, (v) => save("PATCH", "work/" + w.id, { name: v }, "Renamed."), { label: "Project name", required: true })),
-      el("dt", {}, "Status"), el("dd", {}, statusPill(w.status, (v) => save("PATCH", "work/" + w.id, { status: v }, "Status set to " + v + "."), "Status")),
-      el("dt", {}, "Signed"), el("dd", {}, w.by ? sig(w.by) : el("span", { class: "prop-hint" }, "Not recorded")));
-
-    const steps = w.steps || [];
-    const setSteps = (list, message) => save("PATCH", "work/" + w.id, { steps: list }, message);
-    const stepRows = steps.map((s, i) => el("div", { class: "step" + (i === 0 ? " first" : "") },
-      el("span", { class: "step-n" }, String(i + 1)),
-      el("button", { class: "icon-btn done-btn", type: "button", "aria-label": "Mark done: " + s, title: "Mark done",
-        onclick: (e) => markDone(e.currentTarget.closest(".step"), s, () => setSteps(steps.filter((_x, j) => j !== i), "Done: " + s)) },
-        icon("done")),
-      cell(s, (v) => setSteps(v ? steps.map((x, j) => (j === i ? v : x)) : steps.filter((_x, j) => j !== i), "Saved."),
-        { label: (i === 0 ? "Up next" : "Step " + (i + 1)) + " for " + w.name })));
-    const newStep = cell("", () => true, { label: "New step for " + w.name, placeholder: "What comes next" });
-    const stepAdder = steps.length < MAX_STEPS ? addRow("step", "Add a step", "step-grid", [el("span", { class: "step-n" }, String(steps.length + 1)), el("span"), newStep], async () => {
-      const v = newStep.value.trim(); if (!v) return false;
-      return setSteps([...steps, v], "Step added."); }) : null;
-    const stepsBlock = section("steps-title", "Up next", steps.length ? null : "No steps yet", null,
-      el("div", { class: "steps" }, stepRows, stepAdder));
-
-    const notes = (state.project_notes || []).filter((n) => same(n.work, w.name));
-    const noteRows = notes.map((n) => el("div", { class: "tr note-grid", "data-key": "pnote-" + n.id },
-      cell(n.note, (v) => save("PATCH", "project-note/" + n.id, { note: v }, "Saved."), { label: "Memory", required: true, multiline: true }),
-      byCell(n),
-      delBtn("Delete memory", n.note, () => save("DELETE", "project-note/" + n.id, null, "Memory removed."))));
-    const newNote = cell("", () => true, { label: "New memory for " + w.name, placeholder: "A fact about this project every AI should know", multiline: true });
-    const noteAdder = addRow("pnote", "Add a memory", "note-grid", [newNote, el("div", { class: "by" })], async () => {
-      const v = newNote.value.trim(); if (!v) return false;
-      return save("POST", "project-note", { work: w.name, note: v }, "Memory added."); });
-    const memories = section("mem-title", "Memories", null, null,
-      el("div", { class: "table" }, noteRows.length ? noteRows : empty("No memories yet", "Facts that belong to this project, not to you: decisions, links, constraints."), noteAdder));
-
-    const dates = state.dates.filter((d) => same(d.work, w.name));
-    const datesBlock = section("pdates-title", "Dates", null, null,
-      el("div", { class: "table" }, dates.length ? dates.map(dateRow) : empty("No dates yet", "Launches, deadlines and calls for this project."), dateAdder(w.name)));
-
-    const history = page && page.work && page.work.id === w.id ? page.history : null;
-    const historyMaps = history ? undoMap(history) : null;
-    const historyBlock = section("hist-title", "History", null, null,
-      history === null ? skeleton()
-        : history.length ? el("div", { class: "log" }, history.map((c) => entry(c, historyMaps)))
-        : empty("No history yet", "Every change to this project shows up here, signed."));
-    return [props, stepsBlock, memories, datesBlock, historyBlock,
-      recentlyDeleted((g) => g.table === "project_notes" && same(g.item && g.item.work, w.name), "gone-pnotes")];
-  }
-
   function aiNames() {
     const last = {};
     const bump = (by, at) => { if (by && by !== "You" && (!last[by] || last[by] < at)) last[by] = at; };
@@ -952,30 +1876,14 @@
     for (const r of state.readers || []) bump(r.by, r.at);
     return Object.keys(last).sort((a, b) => (last[b] > last[a] ? 1 : -1));
   }
-  function renderAIs() {
-    const names = aiNames();
-    const rows = names.map((n) => {
-      const reader = (state.readers || []).find((r) => r.by === n);
-      const wrote = state.changes.find((c) => c.by === n);
-      return el("div", { class: "ai-row" },
-        el("div", { class: "ai-name" }, sig(n)),
-        el("div", { class: "ai-facts" },
-          el("p", { class: "ai-read" + (reader && reader.missed ? " behind" : "") }, readerLine(reader, Date.now())),
-          el("p", { class: "ai-wrote" }, wrote ? "Last wrote " + ago(wrote.at) : "Hasn’t written yet")),
-        el("a", { class: "ai-link", href: "#activity", onclick: () => { agentFilter = n; } }, "See its changes"));
-    });
-    const account = document.querySelector(".side .foot a[href]");
-    const list = section("ais-list-title", "Who reads your mind", null, null,
-      rows.length ? el("div", {}, rows) : empty("No AIs yet", "Connect an AI app or a Hermes agent. Each one shows up here once it reads or writes your mind."));
-    const sees = section("sees-title", "What your AIs see", null, null, [
+  function whatTheySee() {
+    return section("sees-title", "What your AIs see", null, null, [
       el("p", { class: "sees-lede" }, "Hermes agents get this block with every message. Apps like ChatGPT and Claude read more when they need it."),
       contextText === null ? skeleton() : el("pre", { class: "context-text" }, contextText),
-      account ? el("p", { class: "sees-lede" }, "To make an app read-only or disconnect it, open ",
-        el("a", { href: account.getAttribute("href") }, account.textContent), ".") : null]);
-    return [list, sees];
+      el("p", { class: "sees-lede" }, "To choose which apps can use your mind, open ", el("a", { href: "#settings" }, "Settings"), ".")]);
   }
 
-  function renderActivity() {
+  function renderActivityLog() {
     // The filter mirrors the rail: your AIs, most recent first, then you.
     const ais = [...new Set(state.changes.map((c) => c.by))].filter((n) => n !== "You");
     const authors = ["All", ...ais, ...(state.changes.some((c) => c.by === "You") ? ["You"] : [])];
@@ -1017,8 +1925,8 @@
     dates: "Launches, deadlines and calls, for every AI",
     about: "How you work and the rules your AIs follow",
     activity: "Every change, signed by the AI that made it",
-    project: "Its next steps, memories, dates and history",
     ais: "When each AI last read your mind, and what it sees",
+    settings: "Who can use your mind, your data, and how Mindhall looks",
   };
   function renderNav() {
     const navView = view === "project" ? "work" : view;
@@ -1026,6 +1934,8 @@
       onclick: () => setRail(false) }, icon(v.icon), v.label)));
     const heading = document.getElementById("ais-link");
     if (view === "ais") heading.setAttribute("aria-current", "page"); else heading.removeAttribute("aria-current");
+    const settingsLink = document.getElementById("settings-link");
+    if (view === "settings") settingsLink.setAttribute("aria-current", "page"); else settingsLink.removeAttribute("aria-current");
     const names = state ? aiNames() : [];
     document.getElementById("agents").replaceChildren(...(names.length
       ? names.map((n) => {
@@ -1041,13 +1951,18 @@
   }
   function render() {
     assignInks();
+    settingsHooks();
     const project = view === "project" ? currentProject() : null;
-    const label = view === "project" ? (project ? project.name : "Project") : view === "ais" ? "Your AIs" : VIEWS.find((v) => v.id === view).label;
-    document.getElementById("title").textContent = label;
-    const subtitle = document.getElementById("subtitle");
-    if (view === "project") {   // a project page: the way back, then where it stands
-      subtitle.replaceChildren(el("a", { href: "#work" }, "All projects"),
-        project ? " · " + project.status : "");
+    const label = view === "project" ? (project ? project.name : "Project") : view === "ais" ? "Your AIs" : view === "settings" ? "Settings" : VIEWS.find((v) => v.id === view).label;
+    const title = document.getElementById("title"), subtitle = document.getElementById("subtitle");
+    if (project) {   // a project's name is its page title, edited in place; status and steps are on the page
+      title.replaceChildren(cell(project.name, (v) => save("PATCH", "work/" + project.id, { name: v }, "Renamed."),
+        { label: "Project name", required: true, cls: "title-cell" }));
+    } else {
+      title.textContent = label;
+    }
+    if (view === "project") {   // the way back
+      subtitle.replaceChildren(el("a", { href: "#work" }, "All projects"));
     } else {
       subtitle.textContent = view === "overview" ? today() + " · What your AIs know right now" : SUBTITLES[view];
     }
@@ -1060,7 +1975,7 @@
     prevStruck = struckNow;
     arrivals = seen ? new Set(state.changes.filter((c) => !seen.has(c.id)).map((c) => c.id)) : new Set();
     const out = { overview: renderOverview, work: renderWork, dates: renderDates, about: renderAbout, activity: renderActivity,
-      project: renderProject, ais: renderAIs }[view]();
+      project: renderProject, ais: renderAIs, settings: renderSettings }[view]();
     target.replaceChildren(...[out].flat(3).filter(Boolean));
     fitAll();
     seen = new Set(state.changes.map((c) => c.id));
@@ -1085,7 +2000,7 @@
   function setView(hash) {
     const m = /^project\/(\d+)$/.exec(hash);
     if (m) { view = "project"; projectId = Number(m[1]); page = null; }
-    else { view = VIEWS.some((v) => v.id === hash) || hash === "ais" ? hash : "overview"; projectId = null; }
+    else { view = VIEWS.some((v) => v.id === hash) || hash === "ais" || hash === "settings" ? hash : "overview"; projectId = null; }
     adding = null; render(); loadExtras();
     window.scrollTo(0, 0);
   }
