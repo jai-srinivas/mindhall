@@ -127,6 +127,13 @@ The tests cover the engine, settings, the plugin and the web page, and need no H
 - A hosted version with nothing to set up
 - Memory provider mode, for people who want Mindhall as their main memory
 
+## Community
+
+- Questions and ideas: [GitHub Discussions](https://github.com/jai-srinivas/mindhall/discussions)
+- Chat: [Discord](https://discord.gg/WU78SjbYCC)
+- News: [@getmindhall on X](https://x.com/getmindhall)
+- Found a security problem? Please report it privately with "Report a vulnerability" on the Security tab, not in public.
+
 ## License
 
 MIT
