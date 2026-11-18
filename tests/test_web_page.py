@@ -99,3 +99,45 @@ console.log(JSON.stringify(out));
     assert words[6] == "Undid: Added memory: x"
     assert words[7] == "Added memory: Born on 1990-05-01"  # what someone wrote stays as written
     assert words[8] == "Added Fiverr gigs (Active)"
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_project_wording_and_reading_lines():
+    script = _log_logic() + r"""
+const now = Date.parse("2026-11-17T10:00:00Z");
+console.log(JSON.stringify({
+  words: [
+    friendly("Updated Mindhall: steps: A / B", "Projects"),
+    friendly("Updated Mindhall: next step: Ship", "Projects"),
+    friendly("Added note to Mindhall: Uses SQLite", "Project notes"),
+    friendly("Moved note to Newsletter: Ship Tuesday", "Project notes"),
+    friendly("Removed note (forgotten)", "About you"),
+    friendly("Forgot a removed note", "About you"),
+    friendly("Undid: Removed note from Mindhall: Uses SQLite", "Project notes"),
+  ],
+  reads: [
+    readerLine(null, now),
+    readerLine({ at: "2026-11-17T09:55:00Z", missed: 0 }, now),
+    readerLine({ at: "2026-11-17T08:00:00Z", missed: 1 }, now),
+    readerLine({ at: "2026-11-17T08:00:00Z", missed: 3 }, now),
+  ],
+}));
+"""
+    res = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=30)
+    assert res.returncode == 0, res.stderr
+    out = json.loads(res.stdout)
+    assert out["words"] == [
+        "Updated Mindhall: next steps: A / B",
+        "Updated Mindhall: up next: Ship",
+        "Added memory to Mindhall: Uses SQLite",
+        "Moved memory to Newsletter: Ship Tuesday",
+        "Removed memory (forgotten)",
+        "Forgot a removed memory",
+        "Undid: Removed memory from Mindhall: Uses SQLite",
+    ]
+    assert out["reads"] == [
+        "No reads recorded yet",
+        "Last read 5m ago · up to date",
+        "Last read 2h ago · hasn’t seen 1 change",
+        "Last read 2h ago · hasn’t seen 3 changes",
+    ]
