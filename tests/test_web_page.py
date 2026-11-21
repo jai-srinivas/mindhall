@@ -47,7 +47,7 @@ def test_inline_styles_only_take_fixed_values():
     styles = re.findall(r'[{,]\s*style:\s*([^,}]+)', script)
     assert styles
     for style in styles:
-        assert re.fullmatch(r'"color:"\s*\+\s*inkFor\(name\)|"width:"\s*\+\s*\(40 \+ i \* 10\)\s*\+\s*"%"', style.strip()), style
+        assert re.fullmatch(r'"background:"\s*\+\s*inkFor\(name\)|"width:"\s*\+\s*\(40 \+ i \* 10\)\s*\+\s*"%"', style.strip()), style
 
 
 def _log_logic() -> str:
@@ -144,11 +144,11 @@ console.log(JSON.stringify({
 
 
 def test_style_properties_set_from_script_only_take_fixed_values():
-    # Besides style attributes, the script sets an app's signature ink (from the fixed list) and a growing
-    # text box's height (measured from the box itself). Never data.
+    # Besides style attributes, the script only sets a growing text box's height (measured from the box
+    # itself). Never data.
     script = PAGE.split('<script>\n(() => {', 1)[1]
     assert set(re.findall(r'\.style\.(\w+)\s*=\s*([^;]+);', script)) == {
-        ("color", "inkFor(c.name)"), ("height", '"auto"'), ("height", 't.scrollHeight + "px"')}
+        ("height", '"auto"'), ("height", 't.scrollHeight + "px"')}
 
 
 def test_settings_is_reachable_and_irreversible_actions_need_a_typed_word():
@@ -190,3 +190,41 @@ console.log(JSON.stringify({ fromServer, fallback: dailyRows().sort((a, b) => (a
     assert out["fromServer"] == [{"day": "2026-11-17", "by": "Claude", "work": "Mindhall", "n": 4}]
     assert out["fallback"] == [{"day": "2026-11-16", "by": "ChatGPT", "work": None, "n": 1},
                                {"day": "2026-11-17", "by": "Claude", "work": "Mindhall", "n": 2}]
+
+
+def test_the_logo_is_drawn_in_the_page_itself():
+    # The mark (five dots joined by one line) appears in the browser-tab icon, the rail and the phone bar,
+    # always drawn inline so nothing is fetched for it.
+    assert PAGE.count("M12 49L20 15L32 37L44 15L52 49") == 3
+    icon = re.search(r'<link rel="icon" href="([^"]+)">', PAGE).group(1)
+    assert icon.startswith("data:image/svg+xml,")
+    assert PAGE.count('<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><path class="line"') == 2
+    for old in ('class="orbit"', "--mark-ring", "--mark-orbit", "--mark-core"):
+        assert old not in PAGE, old
+
+
+def test_there_is_no_brand_colour():
+    # No brand colour (Jai, 21 Nov 2026): buttons, active icons, switches and focus rings use the text
+    # colour, and "You" writes in it too. Lavender was dropped because Mem0 uses almost the same colour.
+    assert PAGE.count("--accent: #eeedf6;") == 2 and PAGE.count("--accent: #15161f;") == 1
+    assert PAGE.count("--you: #eeedf6;") == 2 and PAGE.count("--you: #15161f;") == 1
+    low = PAGE.lower()
+    for lavender in ("b9a6f4", "6d55d6", "8b73e6", "185, 166, 244", "109, 85, 214"):
+        assert lavender not in low, lavender
+    assert ".spot-eyebrow { color: var(--you)" not in PAGE
+
+
+def test_names_are_plain_text_with_a_small_ink_dot():
+    # AI names are written in the text colour, never in their ink; the ink only fills a small dot.
+    assert 'el("span", { class: "sig", style: "color:"' not in PAGE
+    assert 'class: "sig-dot", "aria-hidden": "true", style: "background:" + inkFor(name)' in PAGE
+    assert ".sig { font: 600 14px/1.4 var(--display); letter-spacing: -.005em; color: var(--text); }" in PAGE
+
+
+def test_the_logo_is_black_and_white():
+    # No brand colour (Jai, 21 Nov 2026): the mark is the text colour in both themes, and the tab icon is
+    # a white M on a black tile. Lavender was dropped because Mem0 uses almost the same colour.
+    assert PAGE.count("--logo: #eeedf6;") == 2 and PAGE.count("--logo: #15161f;") == 1
+    icon = re.search(r'<link rel="icon" href="([^"]+)">', PAGE).group(1)
+    assert "%230A0A0C" in icon and "%23F6F4EF" in icon
+    assert "b9a6f4" not in icon.lower() and "B9A6F4" not in icon

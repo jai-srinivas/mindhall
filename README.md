@@ -67,7 +67,7 @@ https://<your-address>/<your-secret>/
 - **Activity** shows every change and who made it, updating live as your AIs work.
 - **Undo** any change, whether an AI or you made it. Undos are signed changes too, so they can be undone.
 - **Recently deleted** keeps removed items for 30 days with **Restore**. **Forget for good** erases an item's text from the history instead.
-- **Your AIs** shows when each AI last read your mind and whether it has seen your latest changes, plus the exact block your agents get each turn.
+- **Connected AIs** shows when each AI last read your mind and whether it has seen your latest changes, plus the exact block your agents get each turn.
 - Your edits are signed **You** (change it with `MINDHALL_WEB_NAME`).
 
 The page loads nothing from other sites and never sends its address on, so the secret in it stays private. Don't share screenshots of the address bar.
