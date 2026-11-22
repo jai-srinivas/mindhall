@@ -243,7 +243,8 @@ def test_a_switched_off_ai_stays_listed_and_its_switch_undoes_like_any_change():
     keys = PAGE[PAGE.index("  const appKey = "):PAGE.index("  function syncRow(n) {")]
     names = PAGE[PAGE.index("  function aiNames() {"):PAGE.index("  function whatTheySee() {")]
     script = "let state;\n" + keys + names + _log_logic() + r"""
-state = { changes: [{ id: 2, at: "2026-11-22T10:00:00Z", by: "You", room: "AI apps", summary: "Turned off Hermes  Money" },
+state = { changes: [{ id: 3, at: "2026-11-22T11:00:00Z", by: "Mindhall", room: "AI apps", summary: "Turned off Grok" },
+                    { id: 2, at: "2026-11-22T10:00:00Z", by: "You", room: "AI apps", summary: "Turned off Hermes  Money" },
                     { id: 1, at: "2026-11-21T10:00:00Z", by: "Claude", room: "About you", summary: "Added note: x" }],
           readers: [{ by: "Claude", at: "2026-11-22T09:00:00Z" }],
           settings: { off: ["ChatGPT", "hermes money"] } };
@@ -253,6 +254,7 @@ console.log(JSON.stringify({ names: aiNames(), off: ["chatgpt", " ChatGPT ", "He
 """
     out = _run_node(script)
     assert out["names"] == ["Claude", "ChatGPT", "hermes money"]   # quiet but off: still listed, after the active ones
+    # a switch signed by the plan ("Mindhall") never shows Mindhall as one of your AIs
     assert out["off"] == [True, True, True, False]
     assert out["struck"] == [2]                                    # undoing a switch strikes it through
 

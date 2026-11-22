@@ -1939,7 +1939,7 @@
   function aiNames() {
     const last = {};
     const bump = (by, at) => { if (by && by !== "You" && (!last[by] || last[by] < at)) last[by] = at; };
-    for (const c of state.changes) bump(c.by, c.at);
+    for (const c of state.changes) if (c.room !== "AI apps") bump(c.by, c.at);   // switching apps on or off isn't an AI at work
     for (const r of state.readers || []) bump(r.by, r.at);
     for (const n of (state.settings && state.settings.off) || []) if (!Object.keys(last).some((k) => appKey(k) === appKey(n))) last[n] = "";
     return Object.keys(last).sort((a, b) => (last[b] > last[a] ? 1 : last[b] < last[a] ? -1 : 0));   // ties keep their order
