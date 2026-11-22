@@ -75,6 +75,9 @@ def register(ctx):
         def handler(params, session_id=None, **kwargs):
             token = _SESSION.set(session_id)
             try:
+                mind.ensure_on(agent_name())   # the person can switch one AI off entirely: no reads, no saves
+                if name != "mindhall_read":
+                    mind.ensure_saving()   # the person can pause saving in the dashboard's Settings
                 return _ok(fn(params or {}))
             except engine.MindhallError as e:
                 return _err(str(e))
@@ -89,6 +92,9 @@ def register(ctx):
     # ---------- Tools ----------
 
     def read(p):
+        mind.mark_read(agent_name())  # read receipts: the dashboard shows when each AI last read the mind
+        if p.get("project"):
+            return mind.project(name=p.get("project"), history=20)
         room = (p.get("room") or "all").lower()
         if room == "about":
             return {"about": mind.snapshot()["about"]}
@@ -103,12 +109,14 @@ def register(ctx):
     tool(
         "mindhall_read",
         "Read the user's shared mind (Mindhall). Use it when the context block is not enough, "
-        "for example to see all dates, Done work or a longer change history.",
+        "for example to see all dates, Done work, one project's own memories or a longer change history.",
         {
             "room": {"type": "string", "enum": ["all", "about", "work", "dates", "changes"],
                      "description": "Which part to read. Default: all."},
             "include_past": {"type": "boolean", "description": "For dates: include past dates."},
             "limit": {"type": "integer", "description": "For changes: how many to return (max 200)."},
+            "project": {"type": "string", "description": "Optional: a project's name. Returns that project's "
+                        "page: its next steps, its own memories, its dates and its history."},
         },
         [],
         read,
@@ -116,15 +124,19 @@ def register(ctx):
 
     tool(
         "mindhall_update_work",
-        "Add a project, client or course to the user's Work, or change its status or next step. "
+        "Add a project, client or course to the user's Work, or change its status or next steps. "
         "Use the exact name already in Mindhall when updating.",
         {
             "name": {"type": "string", "description": "Name of the work, e.g. 'Mindhall hackathon entry'."},
             "status": {"type": "string", "enum": list(engine.STATUSES)},
-            "next_step": {"type": "string", "description": "The single next step, in a few words."},
+            "next_step": {"type": "string", "description": "Only the first next step (up next), in a few words. "
+                          "The later steps are kept."},
+            "steps": {"type": "array", "items": {"type": "string"}, "maxItems": engine.MAX_STEPS,
+                      "description": "Up to 3 next steps in order; the first is up next. Replaces the list."},
         },
         ["name"],
-        lambda p: mind.set_work(p.get("name"), agent_name(), p.get("status"), p.get("next_step")),
+        lambda p: mind.set_work(p.get("name"), agent_name(), p.get("status"), p.get("next_step"),
+                                p.get("steps")),
     )
 
     tool(
@@ -142,11 +154,15 @@ def register(ctx):
 
     tool(
         "mindhall_add_note",
-        "Save a lasting fact or rule about the user to About you, "
-        "e.g. how they like answers written. Only what the user said.",
-        {"note": {"type": "string", "description": "One short sentence."}},
+        "Save a lasting fact or rule about the user to About you, e.g. how they like answers written. "
+        "With work, save it as one project's own memory instead. Only what the user said.",
+        {
+            "note": {"type": "string", "description": "One short sentence."},
+            "work": {"type": "string", "description": "Optional: the project this memory belongs to "
+                     "(its exact name in Mindhall). Leave out for a fact about the user."},
+        },
         ["note"],
-        lambda p: mind.add_note(p.get("note"), agent_name()),
+        lambda p: mind.add_note(p.get("note"), agent_name(), p.get("work")),
     )
 
     def remove(p):
@@ -155,13 +171,16 @@ def register(ctx):
             return mind.remove_note(int(p["id"]), agent_name())
         if room == "dates":
             return mind.remove_date(int(p["id"]), agent_name())
-        raise engine.MindhallError("Room must be 'about' or 'dates'.")
+        if room == "project_notes":
+            return mind.remove_project_note(int(p["id"]), agent_name())
+        raise engine.MindhallError("Room must be 'about', 'dates' or 'project_notes'.")
 
     tool(
         "mindhall_remove",
-        "Remove a note from About you or a date from Dates, by id. Only when the user asks.",
+        "Remove a note from About you, a date from Dates, or a project's memory (room project_notes), by id. "
+        "Only when the user asks. The user can restore it from the dashboard for 30 days.",
         {
-            "room": {"type": "string", "enum": ["about", "dates"]},
+            "room": {"type": "string", "enum": ["about", "dates", "project_notes"]},
             "id": {"type": "integer"},
         },
         ["room", "id"],
@@ -174,9 +193,11 @@ def register(ctx):
         # Runs every turn, so it must be fast and must never break the agent.
         token = _SESSION.set(session_id)
         try:
-            if mind.is_empty():
-                return None
-            return {"context": engine.render_context(mind.snapshot())}
+            if not mind.is_on(agent_name()):
+                return {"context": engine.OFF}  # switched off: no mind this turn, and no read receipt
+            snap = mind.snapshot()  # an empty mind gives the two-minute setup offer instead of nothing
+            mind.mark_read(agent_name(), snap.get("latest"))  # the block counts as a read (throttled)
+            return {"context": engine.render_context(snap)}
         except Exception:
             logger.exception("mindhall context injection failed")
             return None
@@ -211,8 +232,11 @@ def register(ctx):
     def show(args="", session_id=None, **kwargs):
         token = _SESSION.set(session_id)
         try:
-            summary = engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
             cfg = current()[0]
+            if not mind.is_on(cfg["agent"]):
+                return (f"Mindhall is turned off for this profile ({cfg['agent']}). Turn it back on in "
+                        "Mindhall's Settings, under Connected AIs.")
+            summary = engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
             return f"{summary}\n\nProfile: {cfg['profile']}. This agent signs as {cfg['agent']}."
         except Exception:
             logger.exception("mindhall /mindhall failed")

@@ -20,12 +20,12 @@ Your mind has four rooms:
 | Room | Holds |
 | --- | --- |
 | About you | Who you are, how you work, the rules every AI follows |
-| Work | Your projects, clients or courses, and where each one stands |
+| Projects | Your projects, clients or courses: where each one stands, up to 3 next steps and its own memories |
 | Dates | Every deadline and launch |
 | Change Log | Every change, which AI made it, and when |
 
-- **Every Hermes turn starts with a short Mindhall block**: about you, active work, the next two weeks of dates and the latest changes. If Mindhall and the agent's own memory disagree, Mindhall wins.
-- **Agents write back** with five tools: `mindhall_read`, `mindhall_update_work`, `mindhall_set_date`, `mindhall_add_note` and `mindhall_remove`.
+- **Every Hermes turn starts with a short Mindhall block**: about you, your projects (active ones with their next steps and memories), the next two weeks of dates, anything removed in the last two weeks (so an agent stops using it) and the latest changes. If Mindhall and the agent's own memory disagree, Mindhall wins. When the mind is empty, the block instead invites the agent to offer a two-minute setup.
+- **Agents write back** with five tools: `mindhall_read`, `mindhall_update_work`, `mindhall_set_date`, `mindhall_add_note` and `mindhall_remove`. They can set a project's next steps and save a memory to one project instead of About you.
 - **Moving a date updates it.** "Launch moved to Nov 22" changes the existing Launch date instead of adding a second, conflicting one. Dates are matched within their project, so two projects can each have their own Launch.
 - **Other AI apps share the same mind** through the included MCP server: ChatGPT, Claude, Cursor and anything else that speaks MCP.
 - **It never breaks your agent.** If the mind can't be read, the turn goes ahead without it.
@@ -62,9 +62,13 @@ The same server gives you a clean web page with your mind as simple tables. Open
 https://<your-address>/<your-secret>/
 ```
 
-- **Work, Dates and About you** as tables: click any cell to edit, add rows at the bottom, delete with ×.
-- **The Change Log** shows every change and who made it, updating live as your AIs work.
+- **Overview** leads with what changed since you last looked, then what's coming up and in progress.
+- **Projects, Dates and About you** as tables: click any cell to edit, add rows at the bottom, delete with ×. Each project opens as its own page with its next steps, memories, dates and history.
+- **Activity** shows every change and who made it, updating live as your AIs work.
 - **Undo** any change, whether an AI or you made it. Undos are signed changes too, so they can be undone.
+- **Recently deleted** keeps removed items for 30 days with **Restore**. **Forget for good** erases an item's text from the history instead.
+- **Connected AIs** shows when each AI last read your mind and whether it has seen your latest changes, plus the exact block your agents get each turn.
+- **Switch any AI off** in Settings: it can't read or change your mind until you switch it back on, and its memories stay as they are. Each switch is a signed change you can undo. On your own server the switch goes by the name each app reports, so it's a convenience, not a lock.
 - Your edits are signed **You** (change it with `MINDHALL_WEB_NAME`).
 
 The page loads nothing from other sites and never sends its address on, so the secret in it stays private. Don't share screenshots of the address bar.
@@ -86,6 +90,7 @@ Every profile shares one mind by default, which is the point. Give a profile its
 - **No network calls** from the Hermes plugin, no telemetry, no credentials.
 - **The MCP server is optional** and listens only on localhost. It also serves the tables page described above. It is reachable from outside only if you expose it yourself, for example with a tunnel.
 - Text is capped at 500 characters per note, name, step or date label.
+- **Read receipts** (when each AI last read the mind) are kept in the same file. Nothing leaves your machine.
 - **What AIs see:** your mind is stored on your machine, but when an AI reads it, what it reads becomes part of that conversation and is processed by that AI's provider, like anything else you tell it.
 
 ## Updating
@@ -115,13 +120,20 @@ pip install pytest
 pytest
 ```
 
-The tests cover the engine and settings, and need no Hermes install.
+The tests cover the engine, settings, the plugin and the web page, and need no Hermes install. They also check that minds stay compatible with older copies of the engine (`tests/legacy`). The MCP server's tests run when the MCP SDK is installed and are skipped otherwise.
 
 ## Coming next
 
 - Sign-in for the MCP server, so the address needs no secret
 - A hosted version with nothing to set up
 - Memory provider mode, for people who want Mindhall as their main memory
+
+## Community
+
+- Questions and ideas: [GitHub Discussions](https://github.com/jai-srinivas/mindhall/discussions)
+- Chat: [Discord](https://discord.gg/WU78SjbYCC)
+- News: [@getmindhall on X](https://x.com/getmindhall)
+- Found a security problem? Please report it privately with "Report a vulnerability" on the Security tab, not in public.
 
 ## License
 

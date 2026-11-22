@@ -87,14 +87,31 @@ def _do(call):
         raise ToolError(str(e)) from None
 
 
+def _guard(ctx) -> None:
+    """The first thing every AI tool does, reads included: stop if the person switched this app off."""
+    _do(lambda: mind.ensure_on(app_name(ctx)))
+
+
+def _save(call):
+    """Run an engine write for an AI, unless the person has paused saving."""
+    return _do(lambda: (mind.ensure_saving(), call())[1])
+
+
 @mcp.tool(title="Read Mindhall", annotations=ToolAnnotations(title='Read Mindhall', readOnlyHint=True, openWorldHint=False))
-def mindhall_read(room: str = "all", include_past: bool = False, limit: int = 20) -> dict:
+def mindhall_read(ctx: Context, room: str = "all", include_past: bool = False, limit: int = 20,
+                  project: str = "") -> dict:
     """Read the user's shared mind (Mindhall): About you, Work, Dates and the Change Log.
 
     room: one of all, about, work, dates, changes (default all).
     include_past: for dates, also return past dates.
     limit: for changes, how many to return (max 200).
+    project: optional, a project's name: returns that project's page (its next steps, its own
+    memories, its dates and its history).
     """
+    _guard(ctx)  # before the read receipt: a switched-off app hasn't read anything
+    mind.mark_read(app_name(ctx))  # read receipts: the dashboard shows when each app last read the mind
+    if (project or "").strip():
+        return _do(lambda: mind.project(name=project, history=20))
     room = (room or "all").lower()
     if room == "about":
         return {"about": mind.snapshot()["about"]}
@@ -108,12 +125,16 @@ def mindhall_read(room: str = "all", include_past: bool = False, limit: int = 20
 
 
 @mcp.tool(title="Update work", annotations=ToolAnnotations(title='Update work', readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
-def mindhall_update_work(name: str, ctx: Context, status: str | None = None, next_step: str | None = None) -> dict:
-    """Add a project, client or course to the user's Work, or change its status or next step.
+def mindhall_update_work(name: str, ctx: Context, status: str | None = None, next_step: str | None = None,
+                         steps: list[str] | None = None) -> dict:
+    """Add a project, client or course to the user's Work, or change its status or next steps.
 
     status: Active, Parked or Done. Use the exact name already in Mindhall when updating.
+    next_step: only the first next step (up next); the later steps are kept.
+    steps: up to 3 next steps in order, the first is up next; replaces the list.
     """
-    return _do(lambda: mind.set_work(name, app_name(ctx), status, next_step))
+    _guard(ctx)
+    return _save(lambda: mind.set_work(name, app_name(ctx), status, next_step, steps))
 
 
 @mcp.tool(title="Add or move a date", annotations=ToolAnnotations(title='Add or move a date', readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
@@ -123,25 +144,32 @@ def mindhall_set_date(day: str, ctx: Context, what: str = "", work: str = "", id
     day: the date as YYYY-MM-DD. what: what happens that day, e.g. "Launch".
     work: optional, the work it belongs to. id: optional, the id of the date to change.
     """
-    return _do(lambda: mind.set_date(what, day, app_name(ctx), work, id))
+    _guard(ctx)
+    return _save(lambda: mind.set_date(what, day, app_name(ctx), work, id))
 
 
 @mcp.tool(title="Add a note", annotations=ToolAnnotations(title='Add a note', readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=False))
-def mindhall_add_note(note: str, ctx: Context) -> dict:
+def mindhall_add_note(note: str, ctx: Context, work: str = "") -> dict:
     """Save a lasting fact or rule about the user to About you, e.g. how they like answers written.
+    With work (a project's exact name), save it as that project's own memory instead.
     Only what the user said."""
-    return _do(lambda: mind.add_note(note, app_name(ctx)))
+    _guard(ctx)
+    return _save(lambda: mind.add_note(note, app_name(ctx), work or None))
 
 
 @mcp.tool(title="Remove a note or date", annotations=ToolAnnotations(title='Remove a note or date', readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=False))
 def mindhall_remove(room: str, id: int, ctx: Context) -> dict:
-    """Remove a note (room "about") or a date (room "dates") by id. Only when the user asks."""
+    """Remove a note (room "about"), a date (room "dates") or a project's memory (room "project_notes")
+    by id. Only when the user asks. The user can restore it from the dashboard for 30 days."""
+    _guard(ctx)
     room = (room or "").lower()
     if room == "about":
-        return _do(lambda: mind.remove_note(id, app_name(ctx)))
+        return _save(lambda: mind.remove_note(id, app_name(ctx)))
     if room == "dates":
-        return _do(lambda: mind.remove_date(id, app_name(ctx)))
-    raise ToolError("Room must be 'about' or 'dates'.")
+        return _save(lambda: mind.remove_date(id, app_name(ctx)))
+    if room == "project_notes":
+        return _save(lambda: mind.remove_project_note(id, app_name(ctx)))
+    raise ToolError("Room must be 'about', 'dates' or 'project_notes'.")
 
 
 # ---------- Web tables: the page a person uses to read and edit the mind ----------
@@ -191,12 +219,23 @@ def add_web_routes(secret: str) -> None:
     async def state(request):
         return mind.everything()
 
+    async def context(request):
+        return {"text": engine.render_context(mind.snapshot())}  # what every AI is given each turn
+
+    async def project(request):
+        return mind.project(work_id=request.path_params["item"])
+
     async def create(request):
         kind, data = request.path_params["kind"], await _body(request)
         if kind == "note":
             return mind.add_note(data.get("note"), WEB_NAME)
+        if kind == "project-note":
+            if not str(data.get("work") or "").strip():
+                raise engine.MindhallError("Say which project this memory belongs to.")
+            return mind.add_note(data.get("note"), WEB_NAME, data.get("work"))
         if kind == "work":
-            return mind.set_work(data.get("name"), WEB_NAME, data.get("status"), data.get("next_step"))
+            return mind.set_work(data.get("name"), WEB_NAME, data.get("status"), data.get("next_step"),
+                                 data.get("steps"))
         if kind == "date":
             return mind.add_date(data.get("what"), data.get("day"), WEB_NAME, data.get("work") or "")
         raise engine.MindhallError("Unknown table.")
@@ -205,8 +244,11 @@ def add_web_routes(secret: str) -> None:
         kind, item, data = request.path_params["kind"], request.path_params["item"], await _body(request)
         if kind == "note":
             return mind.edit_note(item, data.get("note"), WEB_NAME)
+        if kind == "project-note":
+            return mind.edit_project_note(item, WEB_NAME, data.get("note"), data.get("work"))
         if kind == "work":
-            return mind.edit_work(item, WEB_NAME, data.get("name"), data.get("status"), data.get("next_step"))
+            return mind.edit_work(item, WEB_NAME, data.get("name"), data.get("status"), data.get("next_step"),
+                                  data.get("steps"))
         if kind == "date":
             current = next((d for d in mind.all_dates(include_past=True) if d["id"] == item), None)
             if current is None:
@@ -219,17 +261,64 @@ def add_web_routes(secret: str) -> None:
         kind, item = request.path_params["kind"], request.path_params["item"]
         if kind == "note":
             return mind.remove_note(item, WEB_NAME)
+        if kind == "project-note":
+            return mind.remove_project_note(item, WEB_NAME)
         if kind == "work":
             return mind.remove_work(item, WEB_NAME)
         if kind == "date":
             return mind.remove_date(item, WEB_NAME)
         raise engine.MindhallError("Unknown table.")
 
+    async def settings(request):
+        return mind.settings()
+
+    async def change_settings(request):
+        data = await _body(request)
+        if "time_zone" not in data and "paused" not in data:
+            raise engine.MindhallError("Nothing to change.")
+        if "paused" in data and not isinstance(data["paused"], bool):
+            raise engine.MindhallError("paused is true or false.")
+        result = mind.settings()
+        if "time_zone" in data:
+            result = mind.set_time_zone(data.get("time_zone"))
+        if "paused" in data:
+            result = mind.set_paused(data["paused"])
+        return result
+
+    async def ai_switch(request):
+        """The person switching one AI app off (no reading or saving at all) or back on."""
+        data = await _body(request)
+        if not isinstance(data.get("on"), bool):
+            raise engine.MindhallError("on is true or false.")
+        if not isinstance(data.get("name"), str) or not data["name"].strip():
+            raise engine.MindhallError("Say which AI app to switch on or off.")
+        return mind.set_ai_on(data["name"], data["on"], WEB_NAME)
+
+    async def clear(request):
+        data = await _body(request)
+        if str(data.get("confirm", "")).strip().lower() != "clear":
+            raise engine.MindhallError('Type "clear" to confirm.')
+        return mind.clear(WEB_NAME)
+
     async def undo(request):
         return mind.undo(request.path_params["item"], WEB_NAME)
 
+    async def restore(request):
+        return mind.restore(request.path_params["item"], WEB_NAME)
+
+    async def forget(request):
+        return mind.forget(request.path_params["item"], WEB_NAME)
+
     mcp.custom_route(base + "/api/mind", methods=["GET"], include_in_schema=False)(_web(state))
+    mcp.custom_route(base + "/api/context", methods=["GET"], include_in_schema=False)(_web(context))
+    mcp.custom_route(base + "/api/project/{item:int}", methods=["GET"], include_in_schema=False)(_web(project))
+    mcp.custom_route(base + "/api/settings", methods=["GET"], include_in_schema=False)(_web(settings))
+    mcp.custom_route(base + "/api/settings", methods=["PATCH"], include_in_schema=False)(_web(change_settings))
+    mcp.custom_route(base + "/api/clear", methods=["POST"], include_in_schema=False)(_web(clear))
+    mcp.custom_route(base + "/api/ai-switch", methods=["POST"], include_in_schema=False)(_web(ai_switch))
     mcp.custom_route(base + "/api/undo/{item:int}", methods=["POST"], include_in_schema=False)(_web(undo))
+    mcp.custom_route(base + "/api/restore/{item:int}", methods=["POST"], include_in_schema=False)(_web(restore))
+    mcp.custom_route(base + "/api/forget/{item:int}", methods=["POST"], include_in_schema=False)(_web(forget))
     mcp.custom_route(base + "/api/{kind}", methods=["POST"], include_in_schema=False)(_web(create))
     mcp.custom_route(base + "/api/{kind}/{item:int}", methods=["PATCH"], include_in_schema=False)(_web(change))
     mcp.custom_route(base + "/api/{kind}/{item:int}", methods=["DELETE"], include_in_schema=False)(_web(remove))

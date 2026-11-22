@@ -24,7 +24,9 @@ def test_work_is_added_then_updated_and_both_are_logged(mind):
     mind.set_work("Hackathon entry", "Claude", next_step="Write the README")
     mind.set_work("hackathon entry", "Hermes Time", status="parked")
     work = mind.snapshot(today=TODAY)["work"][0]
-    assert work == {"name": "Hackathon entry", "status": "Parked", "next_step": "Write the README"}
+    assert {k: work[k] for k in ("name", "status", "next_step")} == {
+        "name": "Hackathon entry", "status": "Parked", "next_step": "Write the README"}
+    assert work["steps"] == ["Write the README"] and "focus" not in work
     changes = mind.recent_changes()
     assert changes[0]["by"] == "Hermes Time"
     assert "Active to Parked" in changes[0]["summary"]
@@ -174,7 +176,7 @@ def test_everything_marks_which_changes_can_be_undone(mind):
     mind.add_note("Hello", "Claude")
     state = mind.everything()
     assert state["changes"][0]["undoable"] is True
-    assert set(state) == {"about", "work", "dates", "changes"}
+    assert {"about", "work", "dates", "changes", "project_notes", "readers", "deleted"} <= set(state)
 
 
 def test_same_named_dates_in_different_work_stay_separate(mind):
@@ -293,3 +295,9 @@ def test_authors_are_found_without_sqlite_json_functions(mind):
         with_json = mind._last_changes(c)
         without = mind._last_changes(NoJSON(c))
     assert without == with_json and len(without) == 3
+
+
+def test_the_engine_version_matches_plugin_yaml():
+    import re
+    manifest = (Path(__file__).resolve().parents[1] / "plugin.yaml").read_text(encoding="utf-8")
+    assert re.search(r'^version:\s*"?([^"\n]+)"?', manifest, re.M).group(1) == engine.VERSION

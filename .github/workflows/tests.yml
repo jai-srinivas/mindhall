@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Python ${{ matrix.python }}, ${{ matrix.tz }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Dates and "today" depend on the time zone, so the full suite runs in three.
+          - { python: "3.12", tz: "UTC", with: "--with 'mcp>=2,<3'" }
+          - { python: "3.12", tz: "Asia/Kolkata", with: "--with 'mcp>=2,<3'" }
+          - { python: "3.12", tz: "America/Los_Angeles", with: "--with 'mcp>=2,<3'" }
+          # Older Hermes setups: the engine and plugin must still run on Python 3.9 (the MCP SDK needs newer).
+          - { python: "3.9", tz: "UTC", with: "" }
+    env:
+      TZ: ${{ matrix.tz }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+      - name: Tests
+        run: uvx --python ${{ matrix.python }} ${{ matrix.with }} pytest -q
