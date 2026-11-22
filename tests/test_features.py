@@ -490,3 +490,16 @@ def test_a_switched_off_app_stays_off_after_clear_my_mind(mind):
     mind.set_ai_on("ChatGPT", False, "You")
     mind.clear("You")
     assert not mind.is_on("ChatGPT") and mind.settings()["off"] == ["ChatGPT"]
+
+
+def test_one_change_can_be_looked_up_without_its_contents(mind):
+    note = mind.add_note("Prefers short answers", "Claude")
+    first = mind.everything()["changes"][0]
+    got = mind.change(first["id"])
+    assert set(got) == {"id", "at", "by", "room"} and got["by"] == "Claude" and got["at"] == first["at"]
+    assert "Prefers" not in str(got)                                       # no contents
+    mind.set_ai_on("ChatGPT", False, "You", ref="client-1")
+    switch = mind.change(mind.everything()["changes"][0]["id"])
+    assert switch["ai"] == {"name": "ChatGPT", "ref": "client-1", "on_before": True, "on_after": False}
+    assert mind.change(99999) is None and mind.change("nope") is None
+    assert note["id"]

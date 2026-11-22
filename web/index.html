@@ -275,6 +275,7 @@
   .ai-link { color: var(--muted); font-size: 13px; text-decoration: none; white-space: nowrap; }
   .ai-link:hover { color: var(--text); text-decoration: underline; }
   .sees-lede { margin: 14px 0 12px; color: var(--muted); font-size: 14px; max-width: 64ch; }
+  .plan-note { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
   .sees-lede a { color: var(--text); }
   .context-text { margin: 0; padding: 16px; white-space: pre-wrap; overflow-wrap: anywhere;
     font: 13px/1.6 ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted);
@@ -1411,7 +1412,7 @@
   function currentProject() { return state && state.work.find((w) => w.id === projectId); }
   function renderProject() {   // its name is the page title, edited in place (see render)
     const w = currentProject();
-    if (!w) return [empty("This project isn’t here", "It may have been deleted. Projects keeps deleted projects for 30 days under Recently deleted."),
+    if (!w) return [empty("This project isn’t here", "It may have been deleted. Projects keeps deleted projects for " + restoreDays() + " days under Recently deleted."),
       el("p", { class: "back" }, el("a", { href: "#work" }, "All projects"))];
     const b = projectBits(w), steps = w.steps || [];
     const setSteps = (list, message) => save("PATCH", "work/" + w.id, { steps: list }, message);
@@ -1677,7 +1678,7 @@
     return el("div", { class: "conn" + (off ? " off" : "") }, el("span", { class: "conn-ring" }, r.ring),
       el("div", { class: "conn-text" },
         el("div", { class: "conn-name" }, name, c.verified ? el("span", { class: "tag", title: "Recognised by its official sign-in address" }, "Verified") : null),
-        el("p", { class: "conn-sub" }, off ? OFF_LINE : "Last used " + ago(c.last_used) + (r.reader ? " · " + r.status : ""))),   // "up to date" only once it has read
+        el("p", { class: "conn-sub" }, off ? (c.off_reason === "plan" ? PLAN_OFF_LINE : OFF_LINE) : "Last used " + ago(c.last_used) + (r.reader ? " · " + r.status : ""))),   // "up to date" only once it has read
       el("div", { class: "conn-ctl" }, hasSwitch ? aiSwitch(c.name, !off, async (on) => {
           if (await connectionAct(c, on ? "on" : "off", null, switchedText(c.name, on))) refresh(true);   // the switch is a signed change: show it in Activity
         }) : null, access,
@@ -1685,6 +1686,50 @@
           c.name + " loses access straight away, including any sign-in it already has. You can allow it again from here.", "Disconnect",
           () => connectionAct(c, "disconnect", null, c.name + " is disconnected.")) }, "Disconnect")));
   }
+  // ---------- Hosted plans ----------
+  // Only the hosted server sends `plan` (in api/mind and api/account); self-hosted Mindhall has none,
+  // so none of this shows there and the defaults below apply.
+  const planOf = () => (account && account.plan) || (state && state.plan) || null;
+  const restoreDays = () => { const p = planOf(); return (p && p.restore_days) || 30; };
+  const PLAN_OFF_LINE = "Switched off by your plan, which keeps a limited number of apps on. Switch another app off to use this one, or upgrade.";
+  function aisMeta(live) {
+    const p = planOf();
+    if (p && p.ai_limit) return live.filter((c) => !c.off).length + " of " + p.ai_limit + " apps on";
+    return plural(live.length, "app connected", "apps connected");
+  }
+  function planPanel(p) {
+    const day = (iso) => (iso ? niceDay(String(iso).slice(0, 10)) : "");
+    let title, text;
+    if (p.subscribed) {
+      title = "Pro" + (p.interval === "year" ? ", yearly" : p.interval === "month" ? ", monthly" : "");
+      text = p.cancel_at_end ? "Ends on " + day(p.period_end) + ". You keep Pro until then, then move to Free with everything kept."
+        : "Renews on " + day(p.period_end) + ".";
+    } else if (p.trial) {
+      const left = Math.max(0, Math.ceil((new Date(p.trial_ends) - Date.now()) / 86400000));
+      title = "Pro trial";
+      text = plural(left, "day", "days") + " left, until " + day(p.trial_ends) + ". After that you’re on Free unless you subscribe. No card needed until then.";
+    } else if (p.name === "pro") {
+      title = "Pro";
+      text = "Every feature, with no limits.";
+    } else {
+      title = "Free";
+      text = (p.ai_limit ? plural(p.ai_limit, "app", "apps") + " on" : "Apps") + (p.history_days ? " and " + plural(p.history_days, "day", "days") + " of history." : ".")
+        + " Upgrade for unlimited AIs and your full history.";
+    }
+    const go = (path, body) => async () => {   // the server answers with Dodo's address; the page never holds it
+      try { const r = await api("POST", path, body); location.href = r.url; } catch (e) { toast(e.message, null, true); }
+    };
+    const controls = p.subscribed
+      ? el("button", { class: "btn", type: "button", onclick: go("billing/portal") }, "Manage billing")
+      : (p.offers || []).map((o) => el("button", { class: "btn", type: "button", onclick: go("billing/checkout", { interval: o.interval }) }, o.label));
+    return panel("set-plan", "Plan", null, null, "set-panel", [srow(title, text, controls)]);
+  }
+  function planHistoryNote() {   // Free shows the last few days; older changes are kept
+    const p = planOf();
+    return p && p.history_days ? el("p", { class: "plan-note" }, "Showing the last " + plural(p.history_days, "day", "days")
+      + ". Older changes are kept, and come back with Pro.") : null;
+  }
+
   // On/Off for one AI app: Off means it can't read or change anything. Each switch is a signed change, so
   // Activity shows it and it can be undone. "on" on the label marks the state that needs attention, as Paused does.
   const OFF_LINE = "Turned off. It can’t read or change your mind until you turn it back on.";
@@ -1776,8 +1821,9 @@
     const memories = state.about.length + (state.project_notes || []).length;
     const gone = recentlyDeleted(() => true, "gone-all");
     const sections = [
-      panel("set-ais", "Connected AIs", paused ? "saving paused" : hosted ? plural(live.length, "app connected", "apps connected") : account === null ? "on your own server" : null,
+      panel("set-ais", "Connected AIs", paused ? "saving paused" : hosted ? aisMeta(live) : account === null ? "on your own server" : null,
         el("a", { href: "#ais" }, "What they see"), "set-panel", [pauseRow, aisBody]),
+      hosted && account.plan ? planPanel(account.plan) : null,
       panel("set-look", "Appearance", null, null, "set-panel", [
         el("p", { class: "srow-sub" }, "Only changes how Mindhall looks in this browser."),
         el("div", { class: "theme-cards", role: "group", "aria-label": "Theme" },
@@ -1802,7 +1848,7 @@
         srow("Where it lives", hosted
           ? "Your mind is kept by Mindhall, in its own file, with backups kept for up to 30 days. When an AI reads it, what it reads is also handled by that AI’s company, under their terms."
           : "Your mind is one file on your own server. Nothing leaves it except what your connected AIs read, which is also handled by each AI’s company, under their terms."),
-        gone || srow("Recently deleted", "Nothing deleted in the last 30 days. Deleted memories, projects and dates wait here for 30 days before they’re gone.")]),
+        gone || srow("Recently deleted", "Nothing deleted in the last " + restoreDays() + " days. Deleted memories, projects and dates wait here for " + restoreDays() + " days before they’re gone.")]),
       hosted ? panel("set-account", "Account", null, null, "set-panel", [
         srow("Signed in as " + (account.email || "you"),
           [(account.sign_ins || []).length ? "With " + account.sign_ins.join(" or ") : null,
@@ -1935,8 +1981,8 @@
       if (!groups.length || groups[groups.length - 1].label !== g) groups.push({ label: g, items: [] });
       groups[groups.length - 1].items.push(c);
     }
-    if (!groups.length) return [chips, empty("No changes yet", "Every change your AIs make is listed here, signed with the AI’s name. You can undo any of them.")];
-    return [chips, groups.map((g, i) => el("section", { class: "day-block", "aria-labelledby": "day-" + i },
+    if (!groups.length) return [chips, planHistoryNote(), empty("No changes yet", "Every change your AIs make is listed here, signed with the AI’s name. You can undo any of them.")];
+    return [chips, planHistoryNote(), groups.map((g, i) => el("section", { class: "day-block", "aria-labelledby": "day-" + i },
       el("h2", { class: "day-title", id: "day-" + i }, g.label),
       el("div", { class: "log" }, g.items.map(withLine))))];
   }
@@ -2102,7 +2148,7 @@
   function askDelete(name, action) {
     const shown = shorten(name);
     ask(shown ? "Delete “" + shown + "”?" : "Delete this?",
-      "It’s removed for all your AIs. You can restore it from Recently deleted for 30 days.", "Delete", action);
+      "It’s removed for all your AIs. You can restore it from Recently deleted for " + restoreDays() + " days.", "Delete", action);
   }
   function askForget(g) {
     ask("Forget “" + shorten(goneText(g)) + "” for good?",

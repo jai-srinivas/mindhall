@@ -255,3 +255,30 @@ console.log(JSON.stringify({ names: aiNames(), off: ["chatgpt", " ChatGPT ", "He
     assert out["names"] == ["Claude", "ChatGPT", "hermes money"]   # quiet but off: still listed, after the active ones
     assert out["off"] == [True, True, True, False]
     assert out["struck"] == [2]                                    # undoing a switch strikes it through
+
+
+def test_plans_show_only_when_the_hosted_server_sends_one():
+    # Upgrade and billing go through our own server, which answers with the address; the page holds none.
+    assert 'go("billing/checkout", { interval: o.interval })' in PAGE and 'go("billing/portal")' in PAGE
+    assert "location.href = r.url" in PAGE and "dodopayments" not in PAGE.lower()
+    assert "hosted && account.plan ? planPanel(account.plan) : null" in PAGE
+    assert 'c.off_reason === "plan" ? PLAN_OFF_LINE : OFF_LINE' in PAGE
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_plan_limits_follow_the_plan_and_default_to_none():
+    plural = re.search(r"  const plural = .*;\n", PAGE).group(0)
+    block = PAGE[PAGE.index("  const planOf = "):PAGE.index("  function planPanel(p) {")]
+    script = "let state = null, account = null;\n" + plural + block + r"""
+const live = [{ off: false }, { off: false }, { off: true }];
+const out = { selfHosted: [restoreDays(), aisMeta(live), planOf()] };
+state = { plan: { name: "free", ai_limit: 2, history_days: 7, restore_days: 7 } };
+out.freeFromMind = [restoreDays(), aisMeta(live)];
+account = { plan: { name: "pro", ai_limit: null, history_days: null, restore_days: 30 } };
+out.proFromAccount = [restoreDays(), aisMeta(live)];
+console.log(JSON.stringify(out));
+"""
+    out = _run_node(script)
+    assert out["selfHosted"] == [30, "3 apps connected", None]          # your own server: no plan, no limits
+    assert out["freeFromMind"] == [7, "2 of 2 apps on"]
+    assert out["proFromAccount"] == [30, "3 apps connected"]            # Settings' fresher account wins
