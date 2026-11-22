@@ -1769,8 +1769,7 @@
           } }, "Copy")))];
     else aisBody = [
       aiNames().length ? aiNames().map(readerRow) : el("p", { class: "srow-sub pad" }, "No AI has read or written yet."),
-      srow("Who can use your mind", ["On your own server, any app with your secret address can read and change your mind. ",
-        "The switches above go by the name each app reports, so they’re a convenience, not a lock. To cut every app off, change the secret in your server’s settings. ",
+      srow("Who can use your mind", ["Anyone with your secret address. To cut every app off, change the secret. ",
         el("a", { href: "https://github.com/jai-srinivas/mindhall/wiki/Connect-AI-apps", target: "_blank", rel: "noreferrer noopener" }, "How to connect AI apps"), "."])];
 
     const theme = storedTheme() || "system";

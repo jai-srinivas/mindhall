@@ -235,7 +235,7 @@ def test_each_ai_has_an_on_off_switch_in_settings():
     assert "aiSwitch(n, !r.off, (on) => setAiOn(n, on))" in PAGE              # on every reader row
     assert 'typeof c.off === "boolean"' in PAGE                               # hosted: only when the server has the switch
     assert 'connectionAct(c, on ? "on" : "off"' in PAGE
-    assert "they’re a convenience, not a lock" in PAGE                        # honest about self-hosted names
+    assert "Anyone with your secret address. To cut every app off, change the secret." in PAGE   # self-hosted's real lock
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
