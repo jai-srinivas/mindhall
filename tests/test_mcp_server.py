@@ -131,3 +131,25 @@ def test_the_switch_route_checks_its_input_and_needs_the_secret(server, web):
     client = TestClient(server.mcp.streamable_http_app(streamable_http_path=f"/{SECRET}/mcp"))
     assert client.post("/wrong-secret/api/ai-switch", json={"name": "ChatGPT", "on": False}).status_code == 404
     assert server.mind.settings()["off"] == []
+
+
+def test_tools_are_labelled_the_way_the_app_directories_require(server):
+    # Claude: read-only, or destructive if it changes or deletes data. ChatGPT: all three set explicitly,
+    # and being able to undo doesn't make a change non-destructive.
+    import asyncio
+    from types import SimpleNamespace
+    tools = {t.name: SimpleNamespace(**t.annotations.model_dump(by_alias=True))   # as apps see them on the wire
+             for t in asyncio.run(server.mcp.list_tools())}
+    for name, a in tools.items():
+        assert isinstance(a.readOnlyHint, bool) and isinstance(a.destructiveHint, bool), name
+        assert isinstance(a.openWorldHint, bool) and a.title, name
+        assert a.readOnlyHint or a.destructiveHint or name == "mindhall_add_note", name   # adding changes nothing existing
+    assert tools["mindhall_read"].readOnlyHint is True and tools["mindhall_read"].destructiveHint is False
+    for name in ("mindhall_update_work", "mindhall_set_date", "mindhall_remove"):
+        assert tools[name].destructiveHint is True, name
+
+
+def test_the_instructions_describe_saved_facts_and_never_steer_the_ai(server):
+    text = server.INSTRUCTIONS.lower()
+    assert "is right" not in text and "rule" not in text                  # directory policies on steering an AI
+    assert "save only what the user actually said" in text
