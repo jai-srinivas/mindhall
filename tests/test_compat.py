@@ -152,3 +152,16 @@ def test_old_engines_ignore_the_settings_table(tmp_path, old):
     mind.set_work("Newsletter", "Hermes", next_step="Draft issue 4")
     assert mind.snapshot()["work"][0]["name"] == "Newsletter"
     assert new.settings()["time_zone"] == "Asia/Kolkata"
+
+
+def test_old_engines_work_beside_a_switched_off_app_and_leave_its_switch_alone(tmp_path, old):
+    path = tmp_path / "mind.db"
+    new = engine.Mind(path)
+    new.set_ai_on("ChatGPT", False, "You")
+    mind = old.Mind(path)
+    mind.set_work("Newsletter", "Hermes", next_step="Draft issue 4")
+    assert mind.snapshot()["work"][0]["name"] == "Newsletter"
+    switch = next(c for c in new.everything()["changes"] if c["room"] == engine.AI_ROOM)
+    with pytest.raises(old.MindhallError):
+        mind.undo(switch["id"], "You")                             # an old engine can't half-undo a switch
+    assert not new.is_on("ChatGPT") and new.settings()["off"] == ["ChatGPT"]

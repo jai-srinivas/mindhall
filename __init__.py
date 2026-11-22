@@ -75,6 +75,7 @@ def register(ctx):
         def handler(params, session_id=None, **kwargs):
             token = _SESSION.set(session_id)
             try:
+                mind.ensure_on(agent_name())   # the person can switch one AI off entirely: no reads, no saves
                 if name != "mindhall_read":
                     mind.ensure_saving()   # the person can pause saving in the dashboard's Settings
                 return _ok(fn(params or {}))
@@ -192,6 +193,8 @@ def register(ctx):
         # Runs every turn, so it must be fast and must never break the agent.
         token = _SESSION.set(session_id)
         try:
+            if not mind.is_on(agent_name()):
+                return {"context": engine.OFF}  # switched off: no mind this turn, and no read receipt
             snap = mind.snapshot()  # an empty mind gives the two-minute setup offer instead of nothing
             mind.mark_read(agent_name(), snap.get("latest"))  # the block counts as a read (throttled)
             return {"context": engine.render_context(snap)}
@@ -229,8 +232,11 @@ def register(ctx):
     def show(args="", session_id=None, **kwargs):
         token = _SESSION.set(session_id)
         try:
-            summary = engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
             cfg = current()[0]
+            if not mind.is_on(cfg["agent"]):
+                return (f"Mindhall is turned off for this profile ({cfg['agent']}). Turn it back on in "
+                        "Mindhall's Settings, under Connected AIs.")
+            summary = engine.render_summary(mind.snapshot(days_ahead=30, changes=10))
             return f"{summary}\n\nProfile: {cfg['profile']}. This agent signs as {cfg['agent']}."
         except Exception:
             logger.exception("mindhall /mindhall failed")

@@ -228,3 +228,30 @@ def test_the_logo_is_black_and_white():
     icon = re.search(r'<link rel="icon" href="([^"]+)">', PAGE).group(1)
     assert "%230A0A0C" in icon and "%23F6F4EF" in icon
     assert "b9a6f4" not in icon.lower() and "B9A6F4" not in icon
+
+
+def test_each_ai_has_an_on_off_switch_in_settings():
+    assert 'save("POST", "ai-switch", { name, on }' in PAGE                    # self-hosted: the server route
+    assert "aiSwitch(n, !r.off, (on) => setAiOn(n, on))" in PAGE              # on every reader row
+    assert 'typeof c.off === "boolean"' in PAGE                               # hosted: only when the server has the switch
+    assert 'connectionAct(c, on ? "on" : "off"' in PAGE
+    assert "they’re a convenience, not a lock" in PAGE                        # honest about self-hosted names
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_a_switched_off_ai_stays_listed_and_its_switch_undoes_like_any_change():
+    keys = PAGE[PAGE.index("  const appKey = "):PAGE.index("  function syncRow(n) {")]
+    names = PAGE[PAGE.index("  function aiNames() {"):PAGE.index("  function whatTheySee() {")]
+    script = "let state;\n" + keys + names + _log_logic() + r"""
+state = { changes: [{ id: 2, at: "2026-11-22T10:00:00Z", by: "You", room: "AI apps", summary: "Turned off Hermes  Money" },
+                    { id: 1, at: "2026-11-21T10:00:00Z", by: "Claude", room: "About you", summary: "Added note: x" }],
+          readers: [{ by: "Claude", at: "2026-11-22T09:00:00Z" }],
+          settings: { off: ["ChatGPT", "hermes money"] } };
+const m = undoMap([{ id: 3, room: "AI apps", summary: "Undid: Turned off ChatGPT" }, { id: 2, room: "AI apps", summary: "Turned off ChatGPT" }]);
+console.log(JSON.stringify({ names: aiNames(), off: ["chatgpt", " ChatGPT ", "Hermes  Money", "Claude"].map(isOff),
+                             struck: [...m.struck.keys()] }));
+"""
+    out = _run_node(script)
+    assert out["names"] == ["Claude", "ChatGPT", "hermes money"]   # quiet but off: still listed, after the active ones
+    assert out["off"] == [True, True, True, False]
+    assert out["struck"] == [2]                                    # undoing a switch strikes it through

@@ -87,6 +87,11 @@ def _do(call):
         raise ToolError(str(e)) from None
 
 
+def _guard(ctx) -> None:
+    """The first thing every AI tool does, reads included: stop if the person switched this app off."""
+    _do(lambda: mind.ensure_on(app_name(ctx)))
+
+
 def _save(call):
     """Run an engine write for an AI, unless the person has paused saving."""
     return _do(lambda: (mind.ensure_saving(), call())[1])
@@ -103,6 +108,7 @@ def mindhall_read(ctx: Context, room: str = "all", include_past: bool = False, l
     project: optional, a project's name: returns that project's page (its next steps, its own
     memories, its dates and its history).
     """
+    _guard(ctx)  # before the read receipt: a switched-off app hasn't read anything
     mind.mark_read(app_name(ctx))  # read receipts: the dashboard shows when each app last read the mind
     if (project or "").strip():
         return _do(lambda: mind.project(name=project, history=20))
@@ -127,6 +133,7 @@ def mindhall_update_work(name: str, ctx: Context, status: str | None = None, nex
     next_step: only the first next step (up next); the later steps are kept.
     steps: up to 3 next steps in order, the first is up next; replaces the list.
     """
+    _guard(ctx)
     return _save(lambda: mind.set_work(name, app_name(ctx), status, next_step, steps))
 
 
@@ -137,6 +144,7 @@ def mindhall_set_date(day: str, ctx: Context, what: str = "", work: str = "", id
     day: the date as YYYY-MM-DD. what: what happens that day, e.g. "Launch".
     work: optional, the work it belongs to. id: optional, the id of the date to change.
     """
+    _guard(ctx)
     return _save(lambda: mind.set_date(what, day, app_name(ctx), work, id))
 
 
@@ -145,6 +153,7 @@ def mindhall_add_note(note: str, ctx: Context, work: str = "") -> dict:
     """Save a lasting fact or rule about the user to About you, e.g. how they like answers written.
     With work (a project's exact name), save it as that project's own memory instead.
     Only what the user said."""
+    _guard(ctx)
     return _save(lambda: mind.add_note(note, app_name(ctx), work or None))
 
 
@@ -152,6 +161,7 @@ def mindhall_add_note(note: str, ctx: Context, work: str = "") -> dict:
 def mindhall_remove(room: str, id: int, ctx: Context) -> dict:
     """Remove a note (room "about"), a date (room "dates") or a project's memory (room "project_notes")
     by id. Only when the user asks. The user can restore it from the dashboard for 30 days."""
+    _guard(ctx)
     room = (room or "").lower()
     if room == "about":
         return _save(lambda: mind.remove_note(id, app_name(ctx)))
@@ -275,6 +285,15 @@ def add_web_routes(secret: str) -> None:
             result = mind.set_paused(data["paused"])
         return result
 
+    async def ai_switch(request):
+        """The person switching one AI app off (no reading or saving at all) or back on."""
+        data = await _body(request)
+        if not isinstance(data.get("on"), bool):
+            raise engine.MindhallError("on is true or false.")
+        if not isinstance(data.get("name"), str) or not data["name"].strip():
+            raise engine.MindhallError("Say which AI app to switch on or off.")
+        return mind.set_ai_on(data["name"], data["on"], WEB_NAME)
+
     async def clear(request):
         data = await _body(request)
         if str(data.get("confirm", "")).strip().lower() != "clear":
@@ -296,6 +315,7 @@ def add_web_routes(secret: str) -> None:
     mcp.custom_route(base + "/api/settings", methods=["GET"], include_in_schema=False)(_web(settings))
     mcp.custom_route(base + "/api/settings", methods=["PATCH"], include_in_schema=False)(_web(change_settings))
     mcp.custom_route(base + "/api/clear", methods=["POST"], include_in_schema=False)(_web(clear))
+    mcp.custom_route(base + "/api/ai-switch", methods=["POST"], include_in_schema=False)(_web(ai_switch))
     mcp.custom_route(base + "/api/undo/{item:int}", methods=["POST"], include_in_schema=False)(_web(undo))
     mcp.custom_route(base + "/api/restore/{item:int}", methods=["POST"], include_in_schema=False)(_web(restore))
     mcp.custom_route(base + "/api/forget/{item:int}", methods=["POST"], include_in_schema=False)(_web(forget))

@@ -68,6 +68,7 @@ https://<your-address>/<your-secret>/
 - **Undo** any change, whether an AI or you made it. Undos are signed changes too, so they can be undone.
 - **Recently deleted** keeps removed items for 30 days with **Restore**. **Forget for good** erases an item's text from the history instead.
 - **Connected AIs** shows when each AI last read your mind and whether it has seen your latest changes, plus the exact block your agents get each turn.
+- **Switch any AI off** in Settings: it can't read or change your mind until you switch it back on, and its memories stay as they are. Each switch is a signed change you can undo. On your own server the switch goes by the name each app reports, so it's a convenience, not a lock.
 - Your edits are signed **You** (change it with `MINDHALL_WEB_NAME`).
 
 The page loads nothing from other sites and never sends its address on, so the secret in it stays private. Don't share screenshots of the address bar.

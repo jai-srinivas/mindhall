@@ -104,3 +104,30 @@ def test_clearing_from_the_dashboard_needs_the_word(web):
     assert web("GET", "mind").json()["about"] != []
     assert web("POST", "clear", {"confirm": "clear"}).json()["cleared"]["about"] == 1
     assert web("GET", "mind").json()["about"] == []
+
+
+def test_a_switched_off_app_can_neither_read_nor_save(server, web):
+    server.mindhall_update_work("Mindhall", ctx("claude-ai"))
+    assert web("POST", "ai-switch", {"name": "ChatGPT", "on": False}).json()["off"] == ["ChatGPT"]
+    for call in (lambda: server.mindhall_read(ctx("chatgpt")),
+                 lambda: server.mindhall_update_work("Mindhall", ctx("chatgpt"), status="Done"),
+                 lambda: server.mindhall_set_date("2026-12-01", ctx("chatgpt"), what="Launch"),
+                 lambda: server.mindhall_add_note("Likes short answers", ctx("chatgpt")),
+                 lambda: server.mindhall_remove("about", 1, ctx("chatgpt"))):
+        with pytest.raises(server.ToolError, match="turned off for this app"):
+            call()
+    assert [r["by"] for r in server.mind.everything()["readers"]] == []   # its refused read isn't a read
+    assert server.mindhall_read(ctx("claude-ai"))["work"]                  # other apps carry on
+    entry = web("GET", "mind").json()["changes"][0]
+    assert (entry["by"], entry["summary"]) == ("You", "Turned off ChatGPT")
+    assert web("POST", "ai-switch", {"name": "ChatGPT", "on": True}).json()["off"] == []
+    assert server.mindhall_read(ctx("chatgpt"))["work"]                    # back at once, nothing to reconnect
+
+
+def test_the_switch_route_checks_its_input_and_needs_the_secret(server, web):
+    assert web("POST", "ai-switch", {"name": "ChatGPT", "on": "no"}).status_code == 400
+    assert web("POST", "ai-switch", {"name": "  ", "on": False}).status_code == 400
+    assert web("POST", "ai-switch", {"on": False}).status_code == 400
+    client = TestClient(server.mcp.streamable_http_app(streamable_http_path=f"/{SECRET}/mcp"))
+    assert client.post("/wrong-secret/api/ai-switch", json={"name": "ChatGPT", "on": False}).status_code == 404
+    assert server.mind.settings()["off"] == []

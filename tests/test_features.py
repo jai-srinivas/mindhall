@@ -438,3 +438,55 @@ def test_daily_counts_cover_two_weeks_in_the_persons_time_zone(mind, tmp_path):
     assert {d["day"] for d in mind.everything()["daily"]} == {"2026-11-17"}
     mind._clock = lambda: datetime(2026, 12, 10, tzinfo=timezone.utc)
     assert mind.everything()["daily"] == []                   # older than two weeks
+
+
+# ---------- Switching one AI app off or on ----------
+
+def test_switching_an_app_off_stops_it_completely_and_is_a_signed_change(mind):
+    mind.set_work("Mindhall", "Claude")
+    assert mind.set_ai_on("ChatGPT", False, "You")["off"] == ["ChatGPT"]
+    with pytest.raises(engine.MindhallError, match="turned off for this app"):
+        mind.ensure_on("ChatGPT")
+    with pytest.raises(engine.MindhallError):
+        mind.ensure_on("  chatgpt ")                                   # the same app, however it's written
+    mind.ensure_on("Claude")                                           # other apps are untouched
+    entry = mind.everything()["changes"][0]
+    assert (entry["by"], entry["room"], entry["summary"], entry["undoable"]) == (
+        "You", engine.AI_ROOM, "Turned off ChatGPT", True)
+    assert mind.set_ai_on("ChatGPT", False, "You")["off"] == ["ChatGPT"]   # already off: nothing new logged
+    assert mind.everything()["change_count"] == 2
+    assert mind.set_ai_on("ChatGPT", True, "You")["off"] == []
+    mind.ensure_on("ChatGPT")
+    with pytest.raises(engine.MindhallError):
+        mind.set_ai_on("   ", False, "You")
+
+
+def test_undoing_a_switch_switches_back_and_is_itself_undoable(mind):
+    mind.set_ai_on("ChatGPT", False, "You")
+    off_id = mind.everything()["changes"][0]["id"]
+    assert mind.undo(off_id, "You") == {"ai": "ChatGPT", "on": True, "ref": None}
+    mind.ensure_on("ChatGPT")
+    back = mind.everything()["changes"][0]
+    assert back["summary"] == "Undid: Turned off ChatGPT" and back["by"] == "You" and back["undoable"]
+    mind.undo(back["id"], "You")                                       # undoing the undo: off again
+    assert not mind.is_on("ChatGPT")
+    assert mind.everything()["changes"][0]["summary"] == "Undid: Undid: Turned off ChatGPT"
+    mind.set_ai_on("ChatGPT", True, "You")
+    with pytest.raises(engine.MindhallError, match="switched since"):
+        mind.undo(off_id, "You")                                       # an old entry never fights a newer switch
+
+
+def test_switching_apps_is_not_news_for_the_ais(mind):
+    mind.set_work("Mindhall", "Claude")
+    mind.mark_read("Claude")
+    mind.set_ai_on("ChatGPT", False, "You")
+    claude = next(r for r in mind.everything()["readers"] if r["by"] == "Claude")
+    assert claude["missed"] == 0                                       # not a change Claude has missed
+    assert all(c["room"] != engine.AI_ROOM for c in mind.recent_changes())
+    assert "Turned off ChatGPT" not in engine.render_context(mind.snapshot(today=TODAY))
+
+
+def test_a_switched_off_app_stays_off_after_clear_my_mind(mind):
+    mind.set_ai_on("ChatGPT", False, "You")
+    mind.clear("You")
+    assert not mind.is_on("ChatGPT") and mind.settings()["off"] == ["ChatGPT"]

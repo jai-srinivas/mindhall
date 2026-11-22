@@ -108,6 +108,10 @@ TEXT_FIELDS = {"about": ("note",), "work": ("name", "next_step", "later_steps"),
 PAUSED = ("Saving is paused: the user turned it off in Mindhall's settings. You can still read Mindhall, "
           "but don't save to it. If something should be saved, tell the user so they can resume saving.")
 CLEARED_ROOM = "Mind"   # the log entry left by "Clear my mind" (never undoable: there's nothing left to bring back)
+AI_ROOM = "AI apps"     # the person switching an AI app off or on: shown in Activity and undoable, never told to AIs
+OFF = ("Mindhall is turned off for this app: the user switched it off in Mindhall's settings. Don't read from "
+       "or save to Mindhall, and don't rely on what it said before. If you need it, ask the user to turn it "
+       "back on.")
 
 SETUP_PROMPT = (
     "Mindhall: the user's shared mind is empty, so none of their AIs know anything about them yet. "
@@ -366,7 +370,8 @@ class Mind:
     def _settings(c) -> dict:
         stored = {r["key"]: r["value"] for r in c.execute("SELECT key, value FROM settings")}
         zone = stored.get("time_zone") or None
-        return {"time_zone": zone if _zone(zone) else None, "paused": stored.get("paused") == "1"}
+        off = sorted((v for k, v in stored.items() if k.startswith("off:")), key=str.lower)
+        return {"time_zone": zone if _zone(zone) else None, "paused": stored.get("paused") == "1", "off": off}
 
     def settings(self) -> dict:
         with self._conn() as c:
@@ -398,6 +403,52 @@ class Mind:
         """Called by every AI tool that writes. The dashboard (the person) can always write."""
         if self.settings()["paused"]:
             raise MindhallError(PAUSED)
+
+    # ---------- One AI app switched off or on ----------
+    # Kept with the settings (so "Clear my mind" keeps it), keyed by the app's name cleaned like a read
+    # receipt and not case-sensitive. Self-hosted, apps report their own names, so this is a convenience,
+    # not a lock; hosted Mindhall also keeps a flag on each signed-in connection.
+
+    @staticmethod
+    def _app(name) -> str:
+        return " ".join(str(name or "").split())[:60]
+
+    def _is_on(self, c, name) -> bool:
+        return c.execute("SELECT 1 FROM settings WHERE key = ?", ("off:" + name.lower(),)).fetchone() is None
+
+    def _switch(self, c, name: str, on: bool, by: str, ref=None, summary=None) -> bool:
+        was_on = self._is_on(c, name)
+        if was_on == on:
+            return False
+        if on:
+            c.execute("DELETE FROM settings WHERE key = ?", ("off:" + name.lower(),))
+        else:
+            c.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", ("off:" + name.lower(), name))
+        self._log(c, by, AI_ROOM, summary or f"Turned {'on' if on else 'off'} {name}",
+                  {"name": name, "on": was_on, "ref": ref}, {"name": name, "on": on, "ref": ref})
+        return True
+
+    def set_ai_on(self, name, on: bool, by: str, ref=None) -> dict:
+        """Switch one AI app off (it can't read or save at all) or back on. A signed change, so it shows
+        in Activity and can be undone. Switching to the state it's already in changes nothing."""
+        name = self._app(name)
+        if not name:
+            raise MindhallError("Say which AI app to switch on or off.")
+        with self._conn() as c:
+            self._switch(c, name, bool(on), by, ref)
+            return self._settings(c)
+
+    def is_on(self, name) -> bool:
+        name = self._app(name)
+        if not name:
+            return True
+        with self._conn() as c:
+            return self._is_on(c, name)
+
+    def ensure_on(self, name) -> None:
+        """Called by every AI tool, reads included, before anything else."""
+        if not self.is_on(name):
+            raise MindhallError(OFF)
 
     def clear(self, by: str) -> dict:
         """Erase every memory, project, date and project memory, and the whole history, keeping only
@@ -701,6 +752,14 @@ class Mind:
             raise MindhallError(f"There is no change with id {change_id}.")
         room = ch["room"]
         before, after = _load(ch["before"]), _load(ch["after"])
+        if room == AI_ROOM:
+            name, ref = (after or before or {}).get("name") or "", (after or before or {}).get("ref")
+            if not name or after is None or before is None:
+                raise MindhallError("This change can't be undone.")
+            if self._is_on(c, name) != bool(after.get("on")):
+                raise MindhallError(f"{name} has been switched since. Use its switch in Settings instead.")
+            self._switch(c, name, bool(before.get("on")), by, ref, summary=f"Undid: {ch['summary']}")
+            return {"ai": name, "on": bool(before.get("on")), "ref": ref}
         if after is not None and after.get("forgot") is not None:
             raise MindhallError("Forgetting can't be undone.")
         if room not in ROOMS:
@@ -926,13 +985,15 @@ class Mind:
     def _readers(self, c) -> list:
         out = []
         for r in c.execute("SELECT by, at, seen FROM reads ORDER BY at DESC"):
-            missed = c.execute("SELECT COUNT(*) FROM changes WHERE id > ? AND by != ?",
-                               (r["seen"], r["by"])).fetchone()[0]
+            missed = c.execute("SELECT COUNT(*) FROM changes WHERE id > ? AND by != ? AND room != ?",
+                               (r["seen"], r["by"], AI_ROOM)).fetchone()[0]
             out.append({"by": r["by"], "at": r["at"], "seen": r["seen"], "missed": missed})
         return out
 
     @staticmethod
     def _undoable(r) -> bool:
+        if r["room"] == AI_ROOM:
+            return True
         b, a = _load(r["before"]) or {}, _load(r["after"]) or {}
         item = a or b
         return (r["room"] in ROOMS and item.get("id") is not None
@@ -1035,7 +1096,7 @@ class Mind:
                 (today.isoformat(), horizon),
             )]
             recent = [dict(r) for r in c.execute(
-                "SELECT at, by, room, summary FROM changes ORDER BY id DESC LIMIT ?", (changes,)
+                "SELECT at, by, room, summary FROM changes WHERE room != ? ORDER BY id DESC LIMIT ?", (AI_ROOM, changes)
             )]
             removed = [r["label"] for r in self._removed(c, REMOVED_DAYS)[:8]]
             latest = c.execute("SELECT COALESCE(MAX(id), 0) FROM changes").fetchone()[0]
@@ -1063,8 +1124,8 @@ class Mind:
     def recent_changes(self, limit: int = 20) -> list[dict]:
         limit = max(1, min(int(limit or 20), 200))
         with self._conn() as c:
-            return [dict(r) for r in c.execute(
-                "SELECT id, at, by, room, summary FROM changes ORDER BY id DESC LIMIT ?", (limit,)
+            return [dict(r) for r in c.execute(  # what AIs read: switching apps on or off isn't about the mind
+                "SELECT id, at, by, room, summary FROM changes WHERE room != ? ORDER BY id DESC LIMIT ?", (AI_ROOM, limit)
             )]
 
     def is_empty(self) -> bool:

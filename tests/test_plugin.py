@@ -120,3 +120,17 @@ def test_paused_saving_stops_the_plugins_writes_but_not_reads(hermes, tmp_path):
     assert "about" in call(hermes, "mindhall_read")
     block = hermes.hooks["pre_llm_call"](session_id="s1")["context"]
     assert "Saving is paused" in block
+
+
+def test_a_switched_off_profile_gets_no_mind_at_all(hermes, tmp_path):
+    call(hermes, "mindhall_add_note", note="Prefers short answers")
+    mind = hermes.engine.Mind(tmp_path / "mind.db")
+    mind.set_ai_on("hermes", False, "You")                             # the default profile signs as "Hermes"
+    for tool, params in (("mindhall_read", {}), ("mindhall_add_note", {"note": "Likes tea"})):
+        result = call(hermes, tool, **params)
+        assert not result.get("success") and "turned off for this app" in result["error"]
+    assert hermes.hooks["pre_llm_call"](session_id="s1") == {"context": hermes.engine.OFF}
+    assert "Prefers short answers" not in hermes.commands["mindhall"](session_id="s1")
+    assert [r["by"] for r in mind.everything()["readers"]] == []        # nothing it was refused counts as a read
+    mind.set_ai_on("Hermes", True, "You")
+    assert "Prefers short answers" in hermes.hooks["pre_llm_call"](session_id="s1")["context"]
