@@ -1,6 +1,6 @@
 # Mindhall
 
-**One shared mind for every AI you use.**
+**One shared memory for every AI you use.** An open-source MCP memory server for ChatGPT, Claude, Claude Code, Cursor, Codex and Hermes. Hosted version: [getmindhall.com](https://getmindhall.com).
 
 Every AI you use remembers a different version of you. Tell Claude your launch moved and ChatGPT still has the old date. Your Hermes agent never heard about it at all.
 
@@ -111,7 +111,7 @@ HERMES_HOME=~/.hermes/profiles/<name> hermes plugins update mindhall
 ## Known issues
 
 - **Signatures follow the profile Hermes assigns to each session.** Agents on their own profile, such as a profile's Telegram bot, sign with that profile's name. In some setups, desktop-app sessions run under the default profile whichever profile is selected in the app, so they sign with the default profile's name.
-- The MCP server protects your mind with a secret address, not a login. Sign-in (OAuth) is planned.
+- The self-hosted MCP server protects your mind with a secret address, not a login. The hosted version at [getmindhall.com](https://getmindhall.com) uses sign-in, with each AI app connected separately.
 
 ## Develop
 
@@ -124,8 +124,7 @@ The tests cover the engine, settings, the plugin and the web page, and need no H
 
 ## Coming next
 
-- Sign-in for the MCP server, so the address needs no secret
-- A hosted version with nothing to set up
+- The hosted version for everyone at [getmindhall.com](https://getmindhall.com): sign in, connect your AI apps, nothing to set up
 - Memory provider mode, for people who want Mindhall as their main memory
 
 ## Community

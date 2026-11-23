@@ -35,12 +35,15 @@ from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
 WEB_PAGE = Path(__file__).resolve().parent / "web" / "index.html"
 WEB_NAME = os.environ.get("MINDHALL_WEB_NAME", "You").strip() or "You"
 
+# Worded as facts the user chose to save, not instructions for the AI: the Claude and ChatGPT
+# directories refuse servers that steer an AI's behaviour (Claude policy 2F, OpenAI 6.4).
 INSTRUCTIONS = (
-    "Mindhall is the user's shared mind, used by all of their AIs (Hermes agents, Claude, ChatGPT and others). "
-    "Before answering anything about the user's work, projects, dates or preferences, read it with mindhall_read. "
-    "If it disagrees with what you remember, Mindhall is right. "
-    "When the user tells you something that changes their work, dates or preferences, save it with the "
-    "mindhall tools in the same turn and confirm briefly. Only save what the user actually said."
+    "Mindhall is a memory the user shares across their AI apps (Hermes agents, Claude, ChatGPT and others): "
+    "their projects, dates and the facts and preferences they chose to save. "
+    "When the user asks about their work, projects, dates or preferences, read it with mindhall_read. "
+    "If something there differs from what you remember, point out the difference and check with the user. "
+    "When the user asks you to remember something, or tells you about a change to their projects or dates, "
+    "save it with the mindhall tools and confirm briefly. Save only what the user actually said."
 )
 
 # How connecting apps identify themselves, mapped to friendly names for the Change Log.
@@ -97,7 +100,7 @@ def _save(call):
     return _do(lambda: (mind.ensure_saving(), call())[1])
 
 
-@mcp.tool(title="Read Mindhall", annotations=ToolAnnotations(title='Read Mindhall', readOnlyHint=True, openWorldHint=False))
+@mcp.tool(title="Read Mindhall", annotations=ToolAnnotations(title='Read Mindhall', readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def mindhall_read(ctx: Context, room: str = "all", include_past: bool = False, limit: int = 20,
                   project: str = "") -> dict:
     """Read the user's shared mind (Mindhall): About you, Work, Dates and the Change Log.
@@ -124,7 +127,7 @@ def mindhall_read(ctx: Context, room: str = "all", include_past: bool = False, l
     return mind.snapshot(days_ahead=30, changes=10)
 
 
-@mcp.tool(title="Update work", annotations=ToolAnnotations(title='Update work', readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
+@mcp.tool(title="Update work", annotations=ToolAnnotations(title='Update work', readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=False))
 def mindhall_update_work(name: str, ctx: Context, status: str | None = None, next_step: str | None = None,
                          steps: list[str] | None = None) -> dict:
     """Add a project, client or course to the user's Work, or change its status or next steps.
@@ -137,7 +140,7 @@ def mindhall_update_work(name: str, ctx: Context, status: str | None = None, nex
     return _save(lambda: mind.set_work(name, app_name(ctx), status, next_step, steps))
 
 
-@mcp.tool(title="Add or move a date", annotations=ToolAnnotations(title='Add or move a date', readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
+@mcp.tool(title="Add or move a date", annotations=ToolAnnotations(title='Add or move a date', readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=False))
 def mindhall_set_date(day: str, ctx: Context, what: str = "", work: str = "", id: int | None = None) -> dict:
     """Add a date, or move an existing one. A date with the same name (in the same work) is moved, not duplicated.
 
@@ -150,7 +153,7 @@ def mindhall_set_date(day: str, ctx: Context, what: str = "", work: str = "", id
 
 @mcp.tool(title="Add a note", annotations=ToolAnnotations(title='Add a note', readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=False))
 def mindhall_add_note(note: str, ctx: Context, work: str = "") -> dict:
-    """Save a lasting fact or rule about the user to About you, e.g. how they like answers written.
+    """Save a fact or preference the user wants remembered to About you, e.g. where they're based or how they like to work.
     With work (a project's exact name), save it as that project's own memory instead.
     Only what the user said."""
     _guard(ctx)

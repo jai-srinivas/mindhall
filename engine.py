@@ -28,7 +28,7 @@ try:
 except ImportError:  # pragma: no cover - Python older than 3.9
     ZoneInfo = None
 
-VERSION = "0.4.0"   # matches plugin.yaml (a test checks); shown in the dashboard's Settings
+VERSION = "0.4.1"   # matches plugin.yaml (a test checks); shown in the dashboard's Settings
 STATUSES = ("Active", "Parked", "Done")
 MAX_TEXT = 500      # characters per note, name, step or date label: a mind, not a document store
 MAX_STEPS = 3       # next steps per project; the first is "up next"
@@ -730,6 +730,25 @@ class Mind:
             sql, args = ("SELECT 1 FROM project_notes WHERE work = ? COLLATE NOCASE AND note = ? COLLATE NOCASE",
                          (values.get("work"), values.get("note")))
         return c.execute(sql, args).fetchone() is not None
+
+    def change(self, change_id) -> dict | None:
+        """One change's id, time, author and room, without its contents; None if there's no such change.
+        For an AI app being switched, also which app and the switch before and after, so a host can
+        check what undoing it would do (hosted Mindhall: plan limits on history and connected apps)."""
+        try:
+            change_id = int(change_id)
+        except (TypeError, ValueError):
+            return None
+        with self._conn() as c:
+            row = c.execute("SELECT id, at, by, room, before, after FROM changes WHERE id = ?", (change_id,)).fetchone()
+        if row is None:
+            return None
+        out = {"id": row["id"], "at": row["at"], "by": row["by"], "room": row["room"]}
+        if row["room"] == AI_ROOM:
+            before, after = _load(row["before"]) or {}, _load(row["after"]) or {}
+            out["ai"] = {"name": after.get("name") or before.get("name") or "", "ref": after.get("ref", before.get("ref")),
+                         "on_before": bool(before.get("on")), "on_after": bool(after.get("on"))}
+        return out
 
     def undo(self, change_id: int, by: str) -> dict:
         """Reverse one change. The undo is itself a signed change, so it can be undone too."""
