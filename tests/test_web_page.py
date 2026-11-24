@@ -290,3 +290,69 @@ console.log(JSON.stringify(out));
     assert out["selfHosted"] == [30, "3 apps connected", None]          # your own server: no plan, no limits
     assert out["freeFromMind"] == [7, "2 of 2 apps on"]
     assert out["proFromAccount"] == [30, "3 apps connected"]            # Settings' fresher account wins
+
+
+def _setup_logic() -> str:
+    start = PAGE.index("// ---------- setup logic")
+    return PAGE[start:PAGE.index("// ---------- end of setup logic ----------")]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_setup_opens_by_itself_once_on_a_hosted_account_with_no_ai_connected():
+    script = _setup_logic() + r"""
+const app = (name, extra) => Object.assign({ client_id: name, name, disconnected: false, revoked: false }, extra || {});
+const hosted = (connections) => ({ mcp_url: "https://mcp.example/mcp", connections });
+console.log(JSON.stringify([
+  shouldAutoSetup(null, {}),                                              // your own server: no account
+  shouldAutoSetup({ connections: [] }, {}),                               // no address to connect to
+  shouldAutoSetup(hosted([]), {}),                                        // new hosted account: opens
+  shouldAutoSetup(hosted([]), { skipped: true }),                         // skipped once: never again here
+  shouldAutoSetup(hosted([]), { done: true }),
+  shouldAutoSetup(hosted([app("ChatGPT")]), {}),                          // an AI is connected already
+  shouldAutoSetup(hosted([app("ChatGPT", { disconnected: true }), app("Grok", { revoked: true })]), {}),
+  [0, 1, 2, 3].map((n) => setupStartStep(Array(n).fill(app("x")))),
+]));
+"""
+    assert _run_node(script) == [False, False, True, False, False, False, True, ["connect1", "connect2", "try", "try"]]
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_setup_sees_an_ai_save_and_another_ai_read_it():
+    script = _setup_logic() + r"""
+const ch = (id, by, at, room) => ({ id, by, at, room: room || "About you", summary: "Added note: x" });
+// newest first, as the API sends them; "Try it" began when change 5 was the newest
+const st = { changes: [ch(9, "Claude", "2026-11-24T10:09:00+00:00"), ch(8, "ChatGPT", "2026-11-24T10:08:00+00:00"),
+                       ch(7, "You", "2026-11-24T10:07:00+00:00"), ch(6, "Mindhall", "2026-11-24T10:06:00+00:00", "AI apps"),
+                       ch(5, "ChatGPT", "2026-11-24T10:05:00+00:00")],
+             readers: [{ by: "ChatGPT", at: "2026-11-24T10:20:00+00:00" }, { by: "Claude", at: "2026-11-24T10:07:30+00:00" }] };
+const saved = setupSaved(st, 5);
+const out = { saved: saved && saved.id, none: setupSaved(st, 9), notStarted: setupSaved(st, undefined),
+              early: setupRead(st, saved) };                                // Claude read before ChatGPT saved
+st.readers.push({ by: "Claude", at: "2026-11-24T10:12:00+00:00" });
+st.readers.splice(1, 1);
+out.read = (setupRead(st, saved) || {}).by;
+out.self = setupRead({ readers: [{ by: "ChatGPT", at: "2026-11-24T11:00:00+00:00" }] }, saved);   // the saver reading its own save
+console.log(JSON.stringify(out));
+"""
+    out = _run_node(script)
+    assert out["saved"] == 8          # the first AI save after the start; not yours, not Mindhall's switch
+    assert out["none"] is None and out["notStarted"] is None
+    assert out["early"] is None       # a read before the save doesn't count
+    assert out["read"] == "Claude"
+    assert out["self"] is None        # it has to be another AI
+
+
+def test_setup_is_hosted_only_and_reachable_from_settings():
+    assert "if (ob.root || !account || !account.mcp_url) return;" in PAGE       # needs the hosted address
+    assert "if (shouldAutoSetup(account, setupMem)) openSetup(true);" in PAGE
+    assert 'onclick: () => openSetup(false) }, "Open the guide")' in PAGE       # Settings → Help and about
+    assert 'onclick: () => openSetup(false) }, "Walk me through it, step by step")' in PAGE
+    assert 'onclick: () => openSetup(false) }, "Connect your first AI")' in PAGE   # an empty Overview
+    # the steps match the website's guides, which they link to
+    for app in ("chatgpt", "claude", "claude-code", "grok"):
+        assert f'guide: "https://getmindhall.com/integrations/{app}/"' in PAGE
+    # Escape leaves it, and nothing behind it can take the focus while it's open
+    assert 'if (ob.root) { if (e.key === "Escape")' in PAGE
+    assert "shell.inert = true" in PAGE and "shell.inert = false" in PAGE
+    # its motion stops when someone asks for less
+    assert "@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }" in PAGE
