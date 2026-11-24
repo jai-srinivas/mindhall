@@ -596,6 +596,8 @@
   .srow-sub.pad { padding: 14px 0; border-top: 1px solid var(--line); }
   .set-panel .panel-head + .srow-sub { margin: -2px 0 14px; }
   .srow-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+  /* The plan's upgrade buttons are wide: below 1100px they go under the text instead of squeezing it. */
+  @media (max-width: 1100px) { .srow-plan { grid-template-columns: minmax(0, 1fr); } .srow-plan .srow-ctl { justify-content: flex-start; } }
   a.btn { color: var(--text); text-decoration: none; }
 
   .conn { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 6px 16px; padding: 14px 0; border-top: 1px solid var(--line); }
@@ -1722,7 +1724,7 @@
     const controls = p.subscribed
       ? el("button", { class: "btn", type: "button", onclick: go("billing/portal") }, "Manage billing")
       : (p.offers || []).map((o) => el("button", { class: "btn", type: "button", onclick: go("billing/checkout", { interval: o.interval }) }, o.label));
-    return panel("set-plan", "Plan", null, null, "set-panel", [srow(title, text, controls)]);
+    return panel("set-plan", "Plan", null, null, "set-panel", [srow(title, text, controls, "srow-plan")]);
   }
   function planHistoryNote() {   // Free shows the last few days; older changes are kept
     const p = planOf();

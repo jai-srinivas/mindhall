@@ -268,6 +268,12 @@ def test_plans_show_only_when_the_hosted_server_sends_one():
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_plan_buttons_go_under_the_text_on_narrower_screens():
+    # the hosted upgrade buttons are wide ("Yearly: $10/month, billed $120 a year"), so they must not squeeze the text
+    assert 'srow(title, text, controls, "srow-plan")' in PAGE
+    assert "@media (max-width: 1100px) { .srow-plan { grid-template-columns: minmax(0, 1fr); }" in PAGE
+
+
 def test_plan_limits_follow_the_plan_and_default_to_none():
     plural = re.search(r"  const plural = .*;\n", PAGE).group(0)
     block = PAGE[PAGE.index("  const planOf = "):PAGE.index("  function planPanel(p) {")]
