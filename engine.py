@@ -28,7 +28,7 @@ try:
 except ImportError:  # pragma: no cover - Python older than 3.9
     ZoneInfo = None
 
-VERSION = "0.4.1"   # matches plugin.yaml (a test checks); shown in the dashboard's Settings
+VERSION = "0.5.0"   # matches plugin.yaml (a test checks); shown in the dashboard's Settings
 STATUSES = ("Active", "Parked", "Done")
 MAX_TEXT = 500      # characters per note, name, step or date label: a mind, not a document store
 MAX_STEPS = 3       # next steps per project; the first is "up next"
