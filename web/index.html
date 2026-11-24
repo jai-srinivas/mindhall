@@ -29,7 +29,7 @@
     --st-active: #1f7a4f; --st-parked: #9a5b06; --soon: #c2410c;
     --danger: #d13a42; --danger-ink: #ffffff; --danger-soft: #fdecee; --danger-soft-ink: #7a1d24;
     --scrim: rgba(21, 22, 31, .32);
-    --logo: #15161f;
+    --logo: #15161f; --glow: #2f7fd8;
     --display: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --ui: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     color-scheme: light;
@@ -47,7 +47,7 @@
     --st-active: #5fd09a; --st-parked: #e6b84a; --soon: #f29a55;
     --danger-soft: #2a1215; --danger-soft-ink: #f5b5b9;
     --scrim: rgba(3, 4, 8, .66);
-    --logo: #eeedf6;
+    --logo: #eeedf6; --glow: #8ec5ff;
     color-scheme: dark;
   } }
   :root[data-theme="dark"] {
@@ -62,7 +62,7 @@
     --st-active: #5fd09a; --st-parked: #e6b84a; --soon: #f29a55;
     --danger-soft: #2a1215; --danger-soft-ink: #f5b5b9;
     --scrim: rgba(3, 4, 8, .66);
-    --logo: #eeedf6;
+    --logo: #eeedf6; --glow: #8ec5ff;
     color-scheme: dark;
   }
 
@@ -311,6 +311,7 @@
   .prompt-text::before { content: "\201C"; }
   .prompt-text::after { content: "\201D"; }
   .setup-alt { margin-top: 16px; color: var(--muted); }
+  .setup-connect { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 16px; padding: 16px 0; border-top: 1px solid var(--line); }
   .linkish { padding: 0; border: 0; background: none; color: var(--text); font: inherit; cursor: pointer;
     text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; }
   .linkish:hover { text-decoration-color: currentColor; }
@@ -596,6 +597,8 @@
   .srow-sub.pad { padding: 14px 0; border-top: 1px solid var(--line); }
   .set-panel .panel-head + .srow-sub { margin: -2px 0 14px; }
   .srow-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+  /* The plan's upgrade buttons are wide: below 1100px they go under the text instead of squeezing it. */
+  @media (max-width: 1100px) { .srow-plan { grid-template-columns: minmax(0, 1fr); } .srow-plan .srow-ctl { justify-content: flex-start; } }
   a.btn { color: var(--text); text-decoration: none; }
 
   .conn { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 6px 16px; padding: 14px 0; border-top: 1px solid var(--line); }
@@ -611,6 +614,7 @@
   .tag { color: var(--faint); font-size: 12.5px; font-weight: 600; white-space: nowrap; }   /* a quiet word, never a filled badge */
   .connect { padding: 16px 0 12px; border-top: 1px solid var(--line); }
   .addr { display: flex; align-items: center; gap: 10px; margin-top: 12px; max-width: 640px; }
+  .setup-walk { margin-top: 12px; }
   .addr-text { flex: 1; min-width: 0; padding: 8px 12px; border-radius: 8px; background: var(--rail); border: 1px solid var(--line); color: var(--text); font-size: 14px; overflow-wrap: anywhere; user-select: all; }
 
   .theme-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 168px)); gap: 14px; padding: 2px 0 14px; }
@@ -725,6 +729,140 @@
     .prompt { grid-template-columns: 1fr; }
     .prompt .btn { justify-self: start; }
   }
+  /* ---------- first-run setup (hosted) ----------
+     Full screen in the dashboard's own look, one small step at a time. The picture of the mind is the only place
+     with colour: --glow on the mind's halo, and light along a line when an AI saves or reads. */
+  html.ob-lock, html.ob-lock body { overflow: hidden; }
+  .ob.leaving { background-color: transparent; transition: background-color .5s ease-out .15s; }
+  .ob.leaving .ob-top, .ob.leaving .ob-main { opacity: 0; transition: opacity .22s ease-out; }
+  .ob-flyer { position: fixed; left: 0; top: 0; z-index: 26; display: grid; place-items: center; width: 64px; height: 64px; box-sizing: border-box; border: 1px solid var(--line-2); border-radius: 16px; background: var(--panel); transform-origin: 0 0; pointer-events: none; transition: background-color .35s ease-out, border-color .35s ease-out; }
+  .ob-flyer.landing { background-color: transparent; border-color: transparent; }
+  .ob-flyer .mark { width: 32px; height: 32px; }
+  #view.ob-arrive { animation: ob-arrive .7s cubic-bezier(.16, 1, .3, 1) .12s backwards; }
+  @keyframes ob-arrive { from { opacity: 0; transform: translateY(14px); } }
+  .ob { position: fixed; inset: 0; z-index: 25; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--bg); color: var(--text); --ob-ease: cubic-bezier(.16, 1, .3, 1); }
+  .ob-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .ob-top { position: sticky; top: 0; z-index: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 14px clamp(16px, 3vw, 28px); background: var(--bg); }
+  .ob-top .brand { padding: 0; }
+  .ob-nav { display: flex; align-items: center; gap: 12px; }
+  .ob-back { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+  .ob-back svg { width: 17px; height: 17px; }
+  .ob-back:hover { background: var(--hover); color: var(--text); }
+  .ob-back.off { visibility: hidden; }
+  .ob-dots { display: flex; align-items: center; gap: 6px; }
+  .ob-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--line-3); transition: width .4s var(--ob-ease), background .4s ease-out; }
+  .ob-dots span.done { background: var(--muted); }
+  .ob-dots span.now { width: 22px; background: var(--text); }
+  .ob-skip { justify-self: end; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 14px; cursor: pointer; }
+  .ob-skip:hover { background: var(--hover); color: var(--text); }
+  .ob-main { flex: 1 0 auto; display: flex; justify-content: center; align-items: flex-start; padding: clamp(24px, 10vh, 110px) 16px 56px; }
+  .ob-col { width: min(440px, 100%); display: flex; flex-direction: column; align-items: center; }
+  .ob-vis { width: min(460px, 100%); aspect-ratio: 9 / 5; }
+  .ob-vis svg { width: 100%; height: 100%; overflow: visible; }
+  .ob-body { width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 12px; }
+  .ob-body.out-l { animation: ob-out-l .17s ease-in forwards; }
+  .ob-body.out-r { animation: ob-out-r .17s ease-in forwards; }
+  .ob-body.out-f { animation: ob-out-f .12s ease-in forwards; }
+  .ob-body.in-r { animation: ob-in-r .36s var(--ob-ease); }
+  .ob-body.in-l { animation: ob-in-l .36s var(--ob-ease); }
+  .ob-body.in-f { animation: ob-in-f .3s ease-out; }
+  .ob-h { margin: 0; font: 650 28px/1.15 var(--display); letter-spacing: -.025em; text-wrap: balance; }
+  .ob-h:focus { outline: none; }
+  .ob-p { margin-top: 8px; color: var(--muted); font-size: 15px; text-wrap: balance; }
+  .ob-act { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 24px; }
+  .ob-cta { width: 100%; height: 42px; justify-content: center; border-radius: 10px; font-size: 15px; text-decoration: none; }
+  .ob-cta svg { width: 15px; height: 15px; }
+  .btn.primary.ob-cta:disabled { opacity: 1; border-color: var(--line-2); background: var(--panel); color: var(--faint); }
+  .ob-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 20px; }
+  .ob-link { padding: 4px 2px; border: 0; background: none; color: var(--muted); font-size: 14px; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-3); text-underline-offset: 3px; }
+  .ob-link:hover { color: var(--text); text-decoration-color: currentColor; }
+  .ob-tiles { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 24px; }
+  .ob-tile { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 48px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel); color: var(--text); font-size: 14.5px; font-weight: 550; text-align: left; cursor: pointer; transition: border-color .2s ease-out, background .2s ease-out; }
+  .ob-tile:hover { background: var(--hover); }
+  .ob-tile[aria-pressed="true"] { border-color: var(--text); background: var(--hover); }
+  .ob-tile:disabled { cursor: default; color: var(--muted); background: var(--panel); }
+  .ob-tile.wide { grid-column: 1 / -1; }
+  .ob-tile small { color: var(--faint); font-size: 12.5px; font-weight: 500; }
+  .ob-field { width: 100%; display: flex; align-items: center; gap: 6px; height: 46px; margin-top: 24px; padding: 0 6px 0 14px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--input); }
+  .ob-field code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; color: var(--text); font: 13.5px/1.4 ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; user-select: all; }
+  .ob-icon { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+  .ob-icon:hover { background: var(--hover); color: var(--text); }
+  .ob-icon svg { width: 16px; height: 16px; }
+  .ob-wait { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 22px; color: var(--muted); font-size: 14px; }
+  .ob-spin { flex: none; width: 13px; height: 13px; border: 2px solid var(--line-3); border-top-color: var(--text); border-radius: 50%; animation: ob-spin .9s linear infinite; }
+  .ob-wait.ok { color: var(--text); font-weight: 550; }
+  .ob-wait.ok svg { width: 17px; height: 17px; }
+  .ob-how { width: 100%; display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s var(--ob-ease); }
+  .ob-how.open { grid-template-rows: 1fr; }
+  .ob-how > div { min-height: 0; overflow: hidden; }
+  .ob-how ol { margin: 4px 0 0; padding: 0; list-style: none; counter-reset: ob; text-align: left; border-top: 1px solid var(--line); }
+  .ob-how li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.5; counter-increment: ob; }
+  .ob-how li::before { content: counter(ob); color: var(--faint); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .ob-how strong { color: var(--text); font-weight: 600; }
+  .ob-how p { padding: 10px 0 2px; font-size: 13.5px; text-align: left; }
+  .ob-how a { color: var(--muted); }
+  /* the picture: the Mindhall tile in the middle, your apps as named tiles beside it, joined by beams. A tile's
+     place is a class (a fixed spot), so tiles glide when apps are added; beams belong to the spots. */
+  .ob-vis .mark { width: 32px; height: 32px; }
+  .ob-halo stop { stop-color: var(--glow); }
+  .ob-halo-c { opacity: .8; transform-box: fill-box; transform-origin: center; animation: ob-breathe 5s ease-in-out infinite; transition: opacity .8s ease-out; }
+  .ob-hub { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.2; transition: stroke .6s ease-out; }
+  .ob-mind.bright .ob-hub { stroke: var(--glow); }
+  .ob-flare { fill: none; stroke: var(--glow); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .ob-mind.flare .ob-flare { animation: ob-flare 1.3s var(--ob-ease); }
+  .ob-app { transition: transform .6s var(--ob-ease), opacity .35s ease-out; }
+  .ob-app.gone { opacity: 0; }
+  .ob-app.s-L1 { transform: translate(62px, 90px); }
+  .ob-app.s-R1 { transform: translate(358px, 90px); }
+  .ob-app.s-LT { transform: translate(62px, 40px); }
+  .ob-app.s-LB { transform: translate(62px, 140px); }
+  .ob-app.s-RT { transform: translate(358px, 40px); }
+  .ob-app.s-RB { transform: translate(358px, 140px); }
+  .ob-card { fill: none; stroke: var(--line-3); stroke-width: 1.2; stroke-dasharray: 4 4; transition: fill .4s ease-out, stroke .4s ease-out; }
+  .ob-app text { fill: var(--muted); font: 550 14px var(--ui); text-anchor: middle; transition: fill .3s ease-out; }
+  .ob-app.ghost .ob-card { stroke: var(--line-2); }
+  .ob-app.wait .ob-card { stroke: var(--text); }
+  .ob-app.wait text, .ob-app.on text { fill: var(--text); }
+  .ob-app.on .ob-card { fill: var(--panel); stroke: var(--line-3); stroke-dasharray: none; }
+  .ob-app.on.used .ob-card { stroke: var(--glow); }
+  .ob-ripple { fill: none; stroke: var(--text); stroke-width: 1.2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .ob-app.fresh .ob-ripple { animation: ob-ripple 1.1s var(--ob-ease); }
+  .ob-beam { opacity: 0; transition: opacity .4s ease-out; }
+  .ob-beam.show { opacity: 1; }
+  .ob-wire { fill: none; stroke: var(--line-3); stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: .1 6; }
+  .ob-beam.wait .ob-wire { stroke: var(--muted); animation: ob-flow 1s linear infinite; }
+  .ob-beam.on .ob-wire { opacity: 0; }
+  .ob-line, .ob-line-glow { fill: none; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 0; transition: opacity .9s ease-out, stroke .9s ease-out; }
+  .ob-line { stroke: var(--muted); stroke-width: 1.6; }
+  .ob-line-glow { stroke: var(--glow); stroke-width: 7; }
+  .ob-beam.on .ob-line { opacity: .6; stroke-dashoffset: 0; animation: ob-draw .9s var(--ob-ease); }
+  .ob-beam.on.used .ob-line { opacity: 1; stroke: var(--glow); }
+  .ob-beam.on.used .ob-line-glow { opacity: .35; stroke-dashoffset: 0; }
+  .ob-pulse, .ob-pulse-glow { fill: none; stroke-linecap: round; stroke-dasharray: 22 120; stroke-dashoffset: 22; opacity: 0; }
+  .ob-pulse { stroke: var(--glow); stroke-width: 3.5; }
+  .ob-pulse-glow { stroke: var(--glow); stroke-width: 12; }
+  .ob-beam.send .ob-pulse, .ob-beam.send .ob-pulse-glow { animation: ob-send 2.2s cubic-bezier(.45, 0, .55, 1); }
+  .ob-beam.recv .ob-pulse, .ob-beam.recv .ob-pulse-glow { animation: ob-recv 2.2s cubic-bezier(.45, 0, .55, 1); }
+  @keyframes ob-out-l { to { opacity: 0; transform: translateX(-24px); } }
+  @keyframes ob-out-r { to { opacity: 0; transform: translateX(24px); } }
+  @keyframes ob-out-f { to { opacity: 0; } }
+  @keyframes ob-in-r { from { opacity: 0; transform: translateX(28px); } }
+  @keyframes ob-in-l { from { opacity: 0; transform: translateX(-28px); } }
+  @keyframes ob-in-f { from { opacity: 0; } }
+  @keyframes ob-spin { to { transform: rotate(360deg); } }
+  @keyframes ob-breathe { 0%, 100% { transform: scale(.96); } 50% { transform: scale(1.04); } }
+  @keyframes ob-flow { to { stroke-dashoffset: -6.1; } }
+  @keyframes ob-draw { from { stroke-dashoffset: 100; } }
+  @keyframes ob-ripple { from { opacity: .7; transform: scale(1); } to { opacity: 0; transform: scale(1.35); } }
+  @keyframes ob-send { 0% { opacity: 0; stroke-dashoffset: 22; } 8%, 90% { opacity: 1; } 100% { opacity: 0; stroke-dashoffset: -100; } }
+  @keyframes ob-recv { 0% { opacity: 0; stroke-dashoffset: -100; } 8%, 90% { opacity: 1; } 100% { opacity: 0; stroke-dashoffset: 22; } }
+  @keyframes ob-flare { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.6); } }
+  @media (max-width: 600px) {
+    .ob-top { padding: 12px 16px; }
+    .ob-main { padding-top: 8px; }
+    .ob-h { font-size: 24px; }
+  }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -811,6 +949,10 @@
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
     open: '<path d="M5 12h13M13 6l6 6-6 6"/>',
     done: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.3l2.4 2.4 4.6-5"/>',
+    copy: '<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    ext: '<path d="M8 16L16 8M9.5 8H16v6.5"/>',
+    back: '<path d="M14.5 6l-6 6 6 6"/>',
   };
   function icon(name) {
     const t = document.createElement("template");
@@ -1124,6 +1266,9 @@
     return el("section", { class: "block setup", "aria-labelledby": "setup-title" },
       el("div", { class: "sec-head" }, el("h2", { id: "setup-title" }, "Fill your mind in two minutes")),
       el("p", { class: "setup-lede" }, "Paste one of these into ChatGPT, Claude or any AI you’ve connected to Mindhall. It saves what you tell it, and every other AI knows it too."),
+      account && account.mcp_url && !setupApps(account).length ? el("div", { class: "setup-connect" },
+        el("p", {}, "No AI is connected yet. Connect one first, then try these."),
+        el("button", { class: "btn primary", type: "button", onclick: () => openSetup(false) }, "Connect your first AI")) : null,
       prompts.map(([title, text]) => el("div", { class: "prompt" },
         el("h3", {}, title), el("p", { class: "prompt-text" }, text), copy(text))),
       el("p", { class: "setup-alt" }, "Or add things yourself: ",
@@ -1722,7 +1867,7 @@
     const controls = p.subscribed
       ? el("button", { class: "btn", type: "button", onclick: go("billing/portal") }, "Manage billing")
       : (p.offers || []).map((o) => el("button", { class: "btn", type: "button", onclick: go("billing/checkout", { interval: o.interval }) }, o.label));
-    return panel("set-plan", "Plan", null, null, "set-panel", [srow(title, text, controls)]);
+    return panel("set-plan", "Plan", null, null, "set-panel", [srow(title, text, controls, "srow-plan")]);
   }
   function planHistoryNote() {   // Free shows the last few days; older changes are kept
     const p = planOf();
@@ -1811,7 +1956,8 @@
           el("button", { class: "btn", type: "button", onclick: async () => {
             try { await navigator.clipboard.writeText(account.mcp_url); toast("Address copied."); }
             catch (e) { toast("Couldn’t copy. Select the address and copy it.", null, true); }
-          } }, "Copy")))];
+          } }, "Copy")),
+        el("p", { class: "srow-sub setup-walk" }, el("button", { class: "linkish", type: "button", onclick: () => openSetup(false) }, "Walk me through it, step by step")))];
     else aisBody = [
       aiNames().length ? aiNames().map(readerRow) : el("p", { class: "srow-sub pad" }, "No AI has read or written yet."),
       srow("Who can use your mind", ["Anyone with your secret address. To cut every app off, change the secret. ",
@@ -1863,6 +2009,8 @@
           } }, "Change password")) : null,
         ]) : null,
       panel("set-help", "Help and about", null, null, "set-panel", [
+        hosted ? srow("Set-up guide", "Connect your AIs step by step, and watch them share one memory.",
+          el("button", { class: "btn", type: "button", onclick: () => openSetup(false) }, "Open the guide")) : null,
         hosted ? null : srow("Connect AI apps", "Step by step for ChatGPT, Claude, Codex and Hermes.",
           extLink("https://github.com/jai-srinivas/mindhall/wiki/Connect-AI-apps", "Open the guide")),
         hosted && account.support_email
@@ -2095,6 +2243,403 @@
     } catch (e) { setStatus(false); }
   }
 
+  // ---------- setup logic (tests/test_web_page.py runs this block in Node) ----------
+  // Where the first-run setup stands, worked out from what really happened. Change ids and read times both come
+  // from the server, so this browser's clock never matters.
+  const NOT_AN_AI = new Set(["You", "Mindhall"]);   // you, and Mindhall itself (it signs the plan's switches)
+  function setupApps(acct) { return ((acct && acct.connections) || []).filter((c) => !c.disconnected && !c.revoked); }
+  function setupStartStep(apps) { return apps.length === 0 ? "connect1" : apps.length === 1 ? "connect2" : "try"; }
+  function shouldAutoSetup(acct, mem) {   // once, on a hosted account with no AI connected yet
+    return !!(acct && acct.mcp_url) && setupApps(acct).length === 0 && !(mem && (mem.skipped || mem.done));
+  }
+  function setupSaved(st, after) {        // the first thing an AI saved after "Try it" began (changes come newest first)
+    if (!st || typeof after !== "number") return null;
+    const theirs = (st.changes || []).filter((c) => c.id > after && !NOT_AN_AI.has(c.by) && c.room !== "AI apps");
+    return theirs.length ? theirs[theirs.length - 1] : null;
+  }
+  function setupRead(st, saved) {         // another AI reading the mind after that save
+    if (!st || !saved) return null;
+    return (st.readers || []).find((r) => r.by !== saved.by && !NOT_AN_AI.has(r.by) && Date.parse(r.at) >= Date.parse(saved.at)) || null;
+  }
+  function setupOrder(picked, ids) { return ids.filter((id) => (picked || []).includes(id)); }   // the apps you ticked, in list order
+  function setupConnected(before, apps) {   // the app that connected since a screen opened
+    return apps.find((a) => !(before || []).includes(a.client_id)) || null;
+  }
+  // ---------- end of setup logic ----------
+
+  // ---------- first-run setup (hosted) ----------
+  // Full screen in the dashboard's own look, one small step at a time: pick the AIs you use, connect each one
+  // (the address, one button that opens the app, the full steps only if you ask), then tell one AI something
+  // and ask another. It follows what really happens: a connection, a save, a read. The picture of the mind is
+  // the only place with colour. It opens by itself once, on a hosted account with no AI connected yet; Settings
+  // opens it any time. Hosted only: it needs the address the hosted server sends (account.mcp_url).
+  const SETUP_KEY = "mindhall:setup:" + base;
+  const SETUP_DOTS = ["welcome", "pick", "connect", "done"];
+  // "Show me how" is the same steps as getmindhall.com/integrations, shortened. Change both together.
+  const SETUP_APPS = [
+    { id: "chatgpt", name: "ChatGPT", open: "https://chatgpt.com/plugins", line: "Paste this address in ChatGPT, then sign in.",
+      guide: "https://getmindhall.com/integrations/chatgpt/", steps: [
+        "Open **chatgpt.com/plugins**, select **+**, then **Add custom MCP server**.",
+        "Name it **Mindhall** and paste the address as the server URL.",
+        "Choose **OAuth**, tick **I understand and want to continue**, then **Create as a plugin**.",
+        "Sign in to Mindhall, select **Allow**, then **Install**."] },
+    { id: "claude", name: "Claude", open: "https://claude.ai/", line: "Paste this address in Claude’s connectors, then sign in.",
+      guide: "https://getmindhall.com/integrations/claude/", steps: [
+        "In Claude, go to **Customize → Connectors**. Select **+ Add**, then **Add custom connector**.",
+        "Name it **Mindhall**, paste the address and select **Continue**.",
+        "Choose **Sign in now**, keep **Use Claude’s published identity**, and select **Add**.",
+        "Sign in to Mindhall and select **Allow**."] },
+    { id: "claude-code", name: "Claude Code", command: true, line: "Run this in your terminal, then sign in.",
+      guide: "https://getmindhall.com/integrations/claude-code/", steps: [
+        "Run the command in your terminal.",
+        "Start **claude**, type **/mcp**, choose **mindhall**, then authenticate.",
+        "Sign in to Mindhall in your browser and select **Allow**."] },
+    { id: "grok", name: "Grok", open: "https://grok.com/connectors", line: "Paste this address in Grok’s connectors, then sign in.",
+      guide: "https://getmindhall.com/integrations/grok/", steps: [
+        "Open **grok.com/connectors**, select **New Connector**, then **Custom**.",
+        "Paste the address as the MCP server URL.",
+        "Sign in to Mindhall and select **Allow**. If nothing opens, allow pop-ups."] },
+    { id: "other", name: "Another app", line: "Add this address as a custom connector, then sign in.",
+      guide: "https://getmindhall.com/docs/", steps: [
+        "Find where your app adds a **custom connector** or **MCP server**.",
+        "Paste the address, and choose **OAuth** if it asks.",
+        "Sign in to Mindhall and select **Allow**."] },
+  ];
+  const SETUP_IDS = SETUP_APPS.map((a) => a.id);
+  let setupMem = {};
+  try { const v = JSON.parse(localStorage.getItem(SETUP_KEY) || "{}"); if (v && typeof v === "object") setupMem = v; } catch (e) { setupMem = {}; }
+  const keepSetup = () => { try { localStorage.setItem(SETUP_KEY, JSON.stringify(setupMem)); } catch (e) {} };
+  const ob = { root: null };
+  const rich = (s) => String(s).split("**").map((part, i) => (i % 2 ? el("strong", {}, part) : part));
+  const appOf = (id) => SETUP_APPS.find((a) => a.id === id) || null;
+  const lower = (s) => String(s || "").toLowerCase();
+  function replay(node, cls, ms) {   // run a one-off animation again
+    if (!node) return;
+    node.classList.remove(cls); void node.getBoundingClientRect(); node.classList.add(cls);
+    setTimeout(() => node.classList.remove(cls), ms);
+  }
+  async function copyText(text, button) {
+    try { await navigator.clipboard.writeText(text); } catch (e) { ob.live.textContent = "Couldn’t copy. Select the text and copy it."; return; }
+    ob.live.textContent = "Copied.";
+    if (button && button.classList.contains("ob-icon")) {
+      button.replaceChildren(icon("check"));
+      setTimeout(() => button.replaceChildren(icon("copy")), 1600);
+    }
+  }
+  const copyIcon = (text, label) => { const b = el("button", { class: "ob-icon", type: "button", "aria-label": label, onclick: () => copyText(text, b) }, icon("copy")); return b; };
+  function appConnected(id) {   // is one of your connected apps this one?
+    const names = setupApps(account).map((c) => lower(c.name)), linked = (setupMem.links || {})[id];
+    return !!((linked && names.includes(lower(linked))) || (id !== "other" && appOf(id) && names.includes(lower(appOf(id).name))));
+  }
+  function keyFor(name) {   // the picture's node for a connected app: the app you picked, or its own name
+    const links = setupMem.links || {};
+    return SETUP_IDS.find((id) => lower(links[id]) === lower(name) || (id !== "other" && lower(appOf(id).name) === lower(name))) || "c:" + name;
+  }
+
+  // the picture: the Mindhall tile in the middle, your apps as named tiles beside it, joined by beams
+  const SPOTS = [[], ["R1"], ["L1", "R1"], ["LT", "LB", "R1"], ["LT", "LB", "RT", "RB"]];   // where n apps sit
+  const BEAMS = { L1: "M118 90C148 90 150 90 178 90", LT: "M118 40C152 40 150 78 178 78", LB: "M118 140C152 140 150 102 178 102",
+    R1: "M302 90C272 90 270 90 242 90", RT: "M302 40C268 40 270 78 242 78", RB: "M302 140C268 140 270 102 242 102" };   // app → Mindhall
+  function buildPicture() {
+    const stops = [["0", ".5"], [".45", ".14"], ["1", "0"]].map(([offset, o]) => sv("stop", { offset, "stop-opacity": o }));
+    const blur = (id, sd) => sv("filter", { id, x: "-50%", y: "-50%", width: "200%", height: "200%" }, sv("feGaussianBlur", { stdDeviation: sd }));
+    ob.beams = {};
+    const beams = Object.entries(BEAMS).map(([spot, d]) => (ob.beams[spot] = sv("g", { class: "ob-beam" },
+      sv("path", { class: "ob-wire", d }),
+      sv("path", { class: "ob-line-glow", d, pathLength: 100, filter: "url(#ob-blur)" }),
+      sv("path", { class: "ob-line", d, pathLength: 100 }),
+      sv("path", { class: "ob-pulse-glow", d, pathLength: 100, filter: "url(#ob-blur)" }),
+      sv("path", { class: "ob-pulse", d, pathLength: 100, filter: "url(#ob-soft)" }))));
+    ob.layer = sv("g", {});
+    const mark = document.querySelector(".side .brand .mark").cloneNode(true);   // the logo, drawn once in the page
+    for (const [k, v] of [["x", 194], ["y", 74], ["width", 32], ["height", 32]]) mark.setAttribute(k, v);
+    ob.mind = sv("g", { class: "ob-mind" },
+      sv("circle", { class: "ob-halo-c", cx: 210, cy: 90, r: 92, fill: "url(#ob-halo)" }),
+      sv("rect", { class: "ob-flare", x: 178, y: 58, width: 64, height: 64, rx: 16 }),
+      sv("rect", { class: "ob-hub", x: 178, y: 58, width: 64, height: 64, rx: 16 }),
+      mark);
+    return el("div", { class: "ob-vis", "aria-hidden": "true" },
+      sv("svg", { viewBox: "0 0 420 180" },
+        sv("defs", {}, sv("radialGradient", { id: "ob-halo", class: "ob-halo" }, stops), blur("ob-blur", 5), blur("ob-soft", 1.5)),
+        beams, ob.layer, ob.mind));
+  }
+  function makeTile() {
+    return sv("g", { class: "ob-app gone" },
+      sv("rect", { class: "ob-ripple", x: -56, y: -20, width: 112, height: 40, rx: 11 }),
+      sv("rect", { class: "ob-card", x: -56, y: -20, width: 112, height: 40, rx: 11 }),
+      sv("text", { x: 0, y: 5 }));
+  }
+  const PASSING = ["fresh"];   // a one-off animation a redraw must not cut short
+  function setTiles(list) {
+    const spots = SPOTS[Math.min(list.length, 4)], keep = new Set();
+    ob.spotOf = new Map();
+    list.slice(0, 4).forEach((item, i) => {
+      const spot = spots[i];
+      keep.add(item.key);
+      ob.spotOf.set(item.key, spot);
+      let g = ob.nodes.get(item.key);
+      if (!g) {
+        g = makeTile();
+        g.classList.add("s-" + spot);   // it appears in its spot, then fades in
+        ob.layer.append(g);
+        ob.nodes.set(item.key, g);
+        void g.getBoundingClientRect();
+      }
+      const want = ["ob-app", "s-" + spot, item.state, ob.used.has(item.key) ? "used" : ""].filter(Boolean);
+      for (const c of [...g.classList]) if (!want.includes(c) && !PASSING.includes(c)) g.classList.remove(c);
+      want.forEach((c) => g.classList.add(c));
+      g.querySelector("text").textContent = item.label || "";
+    });
+    for (const [key, g] of ob.nodes) if (!keep.has(key)) {   // fades out, then goes
+      g.classList.add("gone");
+      ob.nodes.delete(key);
+      setTimeout(() => g.remove(), 400);
+    }
+    const byspot = new Map(list.slice(0, 4).map((item) => [ob.spotOf.get(item.key), item]));
+    for (const [spot, b] of Object.entries(ob.beams)) {   // each beam shows the state of the app in its spot
+      const item = byspot.get(spot);
+      for (const c of ["show", "wait", "on", "used"]) b.classList.remove(c);
+      if (!item) continue;
+      b.classList.add("show");
+      if (item.state === "wait" || item.state === "on") b.classList.add(item.state);
+      if (item.state === "on" && ob.used.has(item.key)) b.classList.add("used");
+    }
+  }
+  const beamOf = (key) => ob.beams[ob.spotOf && ob.spotOf.get(key)] || null;
+  function drawPicture(apps) {
+    const m = setupMem, s = m.step;
+    let list;
+    if (s === "welcome") list = [{ key: "ghost-0", state: "ghost" }, { key: "ghost-1", state: "ghost" }];
+    else if (s === "pick" || s === "connect") {
+      const current = s === "connect" ? setupOrder(m.picked, SETUP_IDS)[m.at] : null;
+      list = SETUP_IDS.filter((id) => (m.picked || []).includes(id) || appConnected(id)).map((id) => ({ key: id, label: appOf(id).name,
+        state: appConnected(id) ? "on" : id === current ? "wait" : "pick" }));
+    } else list = apps.map((c) => ({ key: keyFor(c.name), label: clip(c.name, 14), state: "on" }));
+    const was = ob.onKeys;
+    setTiles(list);
+    ob.onKeys = new Set(list.filter((x) => x.state === "on").map((x) => x.key));
+    if (ob.opened) for (const k of ob.onKeys) if (!was.has(k)) replay(ob.nodes.get(k), "fresh", 1200);   // a new connection pulses its tile
+    ob.opened = true;
+    // the end: light runs along each connected app's beam into Mindhall, the beams stay lit, and Mindhall glows
+    if (s === "done" && apps.length && !ob.lit) {
+      ob.lit = true;
+      const at = (ms, fn) => setTimeout(() => { if (ob.root) fn(); }, ms);
+      [...ob.onKeys].forEach((key, i) => at(250 + i * 220, () => {
+        ob.used.add(key);
+        const g = ob.nodes.get(key), b = beamOf(key);
+        if (g) g.classList.add("used");
+        if (b) { b.classList.add("used"); replay(b, "send", 2400); }
+      }));
+      at(250 + ob.onKeys.size * 220 + 1700, () => { replay(ob.mind, "flare", 1400); ob.mind.classList.add("bright"); });
+    }
+    if (s !== "done") ob.mind.classList.remove("bright");
+  }
+
+  // the steps
+  function setupScreen(apps) {
+    const m = setupMem, s = m.step;
+    const title = (text) => el("h2", { class: "ob-h", id: "ob-title", tabindex: "-1" }, text);
+    const line = (text) => (text ? el("p", { class: "ob-p" }, text) : null);
+    const cta = (text, onclick, off) => el("button", { class: "btn primary ob-cta", type: "button", disabled: !!off, onclick }, text);
+    const link = (text, onclick) => el("button", { class: "ob-link", type: "button", onclick }, text);
+    const waiting = (text) => el("p", { class: "ob-wait" }, el("span", { class: "ob-spin", "aria-hidden": "true" }), text);
+    if (s === "welcome") return [title("Welcome to Mindhall"), line("One mind for all your AIs."),
+      el("div", { class: "ob-act" }, cta("Get started", () => go("pick", "next")))];
+    if (s === "pick") {
+      const go_ = cta("Continue", () => { setupMem.at = -1; nextApp(); }, !(m.picked || []).length && !apps.length);
+      const tiles = SETUP_APPS.map((a) => {
+        const has = a.id !== "other" && appConnected(a.id);
+        const tile = el("button", { class: "ob-tile" + (a.id === "other" ? " wide" : ""), type: "button", disabled: has,
+          "aria-pressed": String(has || (m.picked || []).includes(a.id)),
+          onclick: () => {
+            const picked = new Set(setupMem.picked || []);
+            if (picked.has(a.id)) picked.delete(a.id); else picked.add(a.id);
+            setupMem.picked = SETUP_IDS.filter((id) => picked.has(id));
+            keepSetup();
+            tile.setAttribute("aria-pressed", String(picked.has(a.id)));
+            go_.disabled = !picked.size && !apps.length;
+            drawPicture(setupApps(account));
+          } },
+          el("span", {}, a.name, has ? el("small", {}, " · Connected") : null));
+        return tile;
+      });
+      return [title("Which AIs do you use?"), line("Pick all that apply."),
+        el("div", { class: "ob-tiles", role: "group", "aria-label": "Your AI apps" }, tiles),
+        el("div", { class: "ob-act" }, go_)];
+    }
+    if (s === "connect") {
+      const order = setupOrder(m.picked, SETUP_IDS), app = appOf(order[m.at]);
+      if (!app) return [title("Connect your AIs")];
+      if (m.got) {
+        const next = order.slice(m.at + 1).find((id) => !appConnected(id));
+        return [title(m.got + " is connected"), line(next ? "Next: " + appOf(next).name + "." : "That’s all of them.")];
+      }
+      const text = app.command ? "claude mcp add --transport http --scope user mindhall " + account.mcp_url : account.mcp_url;
+      const copy = copyIcon(text, app.command ? "Copy the command" : "Copy the address");
+      const how = el("div", { class: "ob-how" }, el("div", {},
+        el("ol", {}, app.steps.map((st) => el("li", {}, el("span", {}, rich(st))))),
+        el("p", {}, el("a", { href: app.guide, target: "_blank", rel: "noreferrer noopener" }, "The full guide"))));
+      const toggle = link("Show me how", () => {
+        const open = how.classList.toggle("open");
+        toggle.textContent = open ? "Hide the steps" : "Show me how";
+      });
+      const main = app.open
+        ? el("a", { class: "btn primary ob-cta", href: app.open, target: "_blank", rel: "noreferrer noopener", onclick: () => copyText(text, copy) }, "Open " + app.name, icon("ext"))
+        : cta(app.command ? "Copy the command" : "Copy the address", (e) => { copyText(text, copy); e.currentTarget.textContent = "Copied"; });
+      return [title("Connect " + app.name), line(app.line),
+        el("div", { class: "ob-field" }, el("code", {}, text), copy),
+        el("div", { class: "ob-act" }, main, waiting("Waiting for " + (app.id === "other" ? "your app" : app.name) + " to connect…"),
+          el("div", { class: "ob-links" }, toggle, link("Skip this app", nextApp))),
+        how];
+    }
+    // done
+    if (!apps.length) return [title("Almost there"), line("Connect an AI any time in Settings."),
+      el("div", { class: "ob-act" }, cta("Open my mind", () => closeSetup("done")))];
+    return [title("You’re all set"), line(apps.length > 1 ? "Tell one AI, they all know." : "Connect more AIs any time in Settings."),
+      el("div", { class: "ob-act" }, cta("Open my mind", () => closeSetup("done")))];
+  }
+
+  function nextApp() {   // the next app you picked that isn't connected yet, then the end
+    const order = setupOrder(setupMem.picked, SETUP_IDS);
+    let at = (typeof setupMem.at === "number" ? setupMem.at : -1) + 1;
+    while (at < order.length && appConnected(order[at])) at++;
+    const apps = setupApps(account);
+    if (at < order.length) return go("connect", "next", { at, got: null, before: apps.map((c) => c.client_id) });
+    go("done", "next");
+  }
+  function go(step, dir, extra) {
+    clearTimeout(ob.auto); ob.autoKey = "";
+    Object.assign(setupMem, { step }, extra || {});
+    keepSetup();
+    ob.dir = dir;
+    drawSetup();
+  }
+  function goBack() {
+    const s = setupMem.step;
+    if (s === "pick") go("welcome", "back");
+    else if (s === "connect") go("pick", "back", { at: -1, got: null });
+  }
+  function swapBody(parts, how, focus) {   // the step slides out and the next slides in; a change within a step fades
+    clearTimeout(ob.swap);
+    const put = () => {
+      ob.body.className = "ob-body" + (how === "next" ? " in-r" : how === "back" ? " in-l" : how === "fade" ? " in-f" : "");
+      ob.body.replaceChildren(...parts.filter(Boolean));
+      if (how === "next" || how === "back" || how === "fade") ob.root.scrollTop = 0;
+      const target = focus === "cta" ? ob.body.querySelector(".ob-cta") : focus ? ob.body.querySelector(".ob-h") : null;
+      if (target) target.focus({ preventScroll: true });
+    };
+    if (!how || !ob.body.childNodes.length) return put();
+    ob.body.className = "ob-body " + (how === "next" ? "out-l" : how === "back" ? "out-r" : "out-f");
+    ob.swap = setTimeout(put, how === "fade" ? 120 : 170);
+  }
+  function drawSetup() {
+    if (!ob.root || !account) return;
+    const m = setupMem, apps = setupApps(account);
+    // what really happened since the last look
+    if (m.step === "connect" && !m.got) {
+      const got = setupConnected(m.before, apps);
+      if (got) { m.got = got.name; (m.links = m.links || {})[setupOrder(m.picked, SETUP_IDS)[m.at]] = got.name; keepSetup(); }
+    }
+    // the top bar
+    const now = Math.max(0, SETUP_DOTS.indexOf(m.step));
+    ob.dots.forEach((d, i) => { d.className = i === now ? "now" : i < now ? "done" : ""; });
+    ob.dots[0].parentNode.setAttribute("aria-label", "Step " + (now + 1) + " of " + SETUP_DOTS.length);
+    ob.backBtn.classList.toggle("off", !["pick", "connect"].includes(m.step));
+    ob.skip.textContent = m.step === "done" ? "Close" : "Skip";
+    // while you're in another app, the picture and the next step wait for you to come back
+    if (document.hidden) return;
+    drawPicture(apps);
+    const key = JSON.stringify([m.step, m.at, m.got, m.step === "done" ? apps.length : 0,
+      m.step === "pick" ? apps.map((c) => c.name) : 0]);   // the list shows an app as connected the moment it is
+    if (key !== ob.key) {
+      const stepChanged = m.step !== ob.step, how = !ob.key ? "" : stepChanged ? (ob.dir || "next") : "fade";
+      ob.key = key; ob.step = m.step; ob.dir = "";
+      const said = m.got ? m.got + " is connected." : "";
+      if (said) ob.live.textContent = said;
+      swapBody(setupScreen(apps), how, stepChanged ? (m.step === "welcome" ? "cta" : "title") : "");
+    }
+    // a success moves on by itself, once you've seen it
+    const auto = m.step === "connect" && m.got ? ["c" + m.at, 1600, nextApp] : null;
+    if (auto && ob.autoKey !== auto[0]) {
+      ob.autoKey = auto[0];
+      clearTimeout(ob.auto);
+      ob.auto = setTimeout(() => { if (ob.root) auto[2](); }, auto[1]);
+    }
+  }
+  function openSetup(auto) {
+    if (ob.root || !account || !account.mcp_url) return;
+    closeConfirm(); closeNew(); setRail(false);
+    Object.assign(setupMem, { step: auto ? "welcome" : "pick", picked: [], at: -1, got: null });
+    keepSetup();
+    Object.assign(ob, { back: document.activeElement, nodes: new Map(), onKeys: new Set(), used: new Set(), lit: false,
+      opened: false, key: "", step: "", dir: "", auto: null, autoKey: "", swap: null });
+    ob.dots = SETUP_DOTS.map(() => el("span"));
+    ob.backBtn = el("button", { class: "ob-back off", type: "button", "aria-label": "Back", onclick: goBack }, icon("back"));
+    ob.skip = el("button", { class: "ob-skip", type: "button", onclick: () => closeSetup(setupMem.step === "done" ? "done" : "skip") }, "Skip");
+    ob.body = el("div", { class: "ob-body" });
+    ob.live = el("p", { class: "ob-sr", "aria-live": "polite" });
+    ob.root = el("div", { class: "ob", role: "dialog", "aria-modal": "true", "aria-labelledby": "ob-title" },
+      el("div", { class: "ob-top" }, document.querySelector(".side .brand").cloneNode(true),
+        el("div", { class: "ob-nav" }, ob.backBtn, el("div", { class: "ob-dots", role: "img" }, ob.dots), el("span", { class: "ob-back off", "aria-hidden": "true" })),
+        ob.skip),
+      el("div", { class: "ob-main" }, el("div", { class: "ob-col" }, buildPicture(), ob.body, ob.live)));
+    document.body.append(ob.root);
+    document.documentElement.classList.add("ob-lock");
+    const shell = document.querySelector(".app");
+    if (shell) shell.inert = true;   // nothing behind it can take the focus
+    drawSetup();
+    ob.timer = setInterval(setupTick, 3000);
+  }
+  function closeSetup(how) {
+    if (!ob.root || ob.leaving) return;
+    if (how === "skip") setupMem.skipped = true;
+    if (how === "done") setupMem.done = true;
+    keepSetup();
+    clearInterval(ob.timer); clearTimeout(ob.auto); clearTimeout(ob.swap);
+    const finish = () => {
+      ob.root.remove();
+      ob.root = null; ob.leaving = false;
+      document.documentElement.classList.remove("ob-lock");
+      const shell = document.querySelector(".app");
+      if (shell) shell.inert = false;
+      if (ob.back && ob.back !== document.body && document.contains(ob.back)) ob.back.focus();
+    };
+    refresh(true);   // the dashboard is drawn behind it before it's revealed
+    if (how === "done" && flyHome()) { ob.leaving = true; setTimeout(finish, 820); return; }
+    finish();
+  }
+  // Finishing: the Mindhall tile flies into the logo in the corner of the dashboard while the setup fades away
+  // and the dashboard rises into place. With reduced motion it simply closes.
+  function flyHome() {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !Element.prototype.animate) return false;
+    const seen = (e) => {
+      const r = e.getBoundingClientRect();
+      return r.width > 0 && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight && (!e.checkVisibility || e.checkVisibility({ visibilityProperty: true }));
+    };
+    const hub = ob.root.querySelector(".ob-hub"), home = [...document.querySelectorAll(".app .brand .mark")].find(seen);
+    if (!hub || !home) return false;
+    const a = hub.getBoundingClientRect(), b = home.getBoundingClientRect(), s = b.width / 32;
+    const flyer = el("div", { class: "ob-flyer", "aria-hidden": "true" }, home.cloneNode(true));
+    document.body.append(flyer);
+    flyer.animate([
+      { transform: "translate(" + a.left + "px, " + a.top + "px) scale(" + a.width / 64 + ")" },
+      { transform: "translate(" + (b.left + b.width / 2 - 32 * s) + "px, " + (b.top + b.height / 2 - 32 * s) + "px) scale(" + s + ")" },
+    ], { duration: 720, easing: "cubic-bezier(.65, 0, .35, 1)", fill: "forwards" });
+    setTimeout(() => flyer.classList.add("landing"), 340);   // the tile melts away, leaving the logo
+    setTimeout(() => flyer.remove(), 820);
+    ob.root.classList.add("leaving");
+    const view = document.getElementById("view");
+    if (view) replay(view, "ob-arrive", 1000);
+    return true;
+  }
+  document.addEventListener("visibilitychange", () => { if (ob.root && !document.hidden) setTimeout(setupTick, 400); });
+  async function setupTick() {   // while it's open: who has connected, and what they saved and read
+    if (!ob.root) return;
+    try { account = await api("GET", "account"); } catch (e) { /* keep what we had; the next tick tries again */ }
+    await refresh(false);
+    drawSetup();
+  }
+
   // ---------- "New" panel ----------
   const nw = { scrim: document.getElementById("new-scrim"), kind: "work", project: null };
   function field(label, input) { return el("div", { class: "field" }, el("label", { for: input.id }, label), input); }
@@ -2166,6 +2711,7 @@
 
   // ---------- keyboard ----------
   document.addEventListener("keydown", (e) => {
+    if (ob.root) { if (e.key === "Escape") { e.preventDefault(); closeSetup(setupMem.step === "done" ? "done" : "skip"); } return; }
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
     if (e.key === "Escape") { closeConfirm(); closeNew(); setRail(false); if (adding && !overlayOpen()) { adding = null; render(); } return; }
     if (typing || overlayOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -2180,6 +2726,10 @@
   // ---------- start ----------
   setView(location.hash.slice(1));
   refresh(true);
+  loadAccount().then(() => {
+    if (shouldAutoSetup(account, setupMem)) openSetup(true);
+    else if (account && state && !isEditing() && !overlayOpen()) render();
+  });
   setInterval(() => refresh(false), 4000);
   setInterval(() => { if (state && !isEditing() && !overlayOpen()) render(); }, 60000);
   window.addEventListener("focus", () => refresh(false));
