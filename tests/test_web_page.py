@@ -354,5 +354,28 @@ def test_setup_is_hosted_only_and_reachable_from_settings():
     # Escape leaves it, and nothing behind it can take the focus while it's open
     assert 'if (ob.root) { if (e.key === "Escape")' in PAGE
     assert "shell.inert = true" in PAGE and "shell.inert = false" in PAGE
+    # an app that connects while the list is open shows as connected straight away, and the waiting lines say
+    # what they wait for, so a connected app never reads as still connecting
+    assert 'm.step === "pick" ? apps.map((c) => c.name) : 0]);' in PAGE
+    assert '" to connect…")' in PAGE
+    # for now it ends once your apps are connected: no "tell one, ask the other" step
+    assert 'const SETUP_DOTS = ["welcome", "pick", "connect", "done"];' in PAGE
+    assert '"tell"' not in PAGE and '"ask"' not in PAGE
     # its motion stops when someone asks for less
     assert "@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }" in PAGE
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="needs Node.js to run the page's script")
+def test_setup_connects_the_apps_you_picked_in_order_and_spots_each_new_one():
+    script = _setup_logic() + r"""
+const a = (id, name) => ({ client_id: id, name });
+const ids = ["chatgpt", "claude", "claude-code", "grok", "other"];
+console.log(JSON.stringify({
+  order: setupOrder(["grok", "chatgpt"], ids),                                 // ticked out of order: listed order
+  none: setupOrder(undefined, ids),
+  fresh: (setupConnected(["c1"], [a("c1", "ChatGPT"), a("c2", "Claude")]) || {}).name,   // the one that wasn't there
+  nothing: setupConnected(["c1", "c2"], [a("c1", "ChatGPT"), a("c2", "Claude")]),
+  first: (setupConnected(undefined, [a("c1", "ChatGPT")]) || {}).name,
+}));
+"""
+    assert _run_node(script) == {"order": ["chatgpt", "grok"], "none": [], "fresh": "Claude", "nothing": None, "first": "ChatGPT"}
